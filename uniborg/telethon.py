@@ -62,3 +62,16 @@ class Uniborg(TelegramClient):
         spec.loader.exec_module(mod)
         self._plugins[shortname] = mod
         self._logger.info(f"Successfully loaded plugin {shortname}")
+
+    def remove_plugin(self, shortname):
+        name = self._plugins[shortname].__name__
+
+        i = len(self._event_builders)
+        while i:
+            i -= 1
+            ev, cb = self._event_builders[i]
+            if cb.__module__ == name:
+                del self._event_builders[i]
+
+        del self._plugins[shortname]
+        self._logger.info(f"Removed plugin {shortname}")
