@@ -14,7 +14,7 @@ import telethon.events
 from . import hacks
 
 class Uniborg(TelegramClient):
-    def __init__(self, session, *, plugin_path="plugins", **kwargs):
+    def __init__(self, session, *, plugin_path="plugins", bot_token=None, **kwargs):
         # TODO: handle non-string session
         self._name = session
         self._logger = logging.getLogger(session)
@@ -30,7 +30,7 @@ class Uniborg(TelegramClient):
         # precedence
         self._event_builders = hacks.ReverseList()
 
-        self._loop.run_until_complete(self._async_init())
+        self._loop.run_until_complete(self._async_init(bot_token=bot_token))
 
         core_plugin = Path(__file__).parent / "_core.py"
         self.load_plugin_from_file(core_plugin)
@@ -38,8 +38,8 @@ class Uniborg(TelegramClient):
         for p in Path().glob(f"{self._plugin_path}/*.py"):
             self.load_plugin_from_file(p)
 
-    async def _async_init(self):
-        await self.start()
+    async def _async_init(self, **kwargs):
+        await self.start(**kwargs)
 
         self.me = await self.get_me()
         self.uid = telethon.utils.get_peer_id(self.me)
