@@ -75,3 +75,16 @@ class Uniborg(TelegramClient):
 
         del self._plugins[shortname]
         self._logger.info(f"Removed plugin {shortname}")
+
+    def await_event(self, event_matcher, filter=None):
+        fut = asyncio.Future()
+
+        @self.on(event_matcher)
+        async def cb(event):
+            if filter is None or await filter(event):
+                fut.set_result(event)
+
+        fut.add_done_callback(lambda _:
+                self.remove_event_handler(cb, event_matcher))
+
+        return fut
