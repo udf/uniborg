@@ -87,9 +87,12 @@ class Uniborg(TelegramClient):
 
         @self.on(event_matcher)
         async def cb(event):
-            if filter is None or await filter(event):
+            try:
+                if filter is None or await filter(event):
+                    fut.set_result(event)
+            except telethon.events.StopPropagation:
                 fut.set_result(event)
-                raise telethon.events.StopPropagation
+                raise
 
         fut.add_done_callback(
                 lambda _: self.remove_event_handler(cb, event_matcher))
