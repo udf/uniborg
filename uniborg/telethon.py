@@ -13,16 +13,20 @@ import telethon.events
 
 from . import hacks
 
+
 class Uniborg(TelegramClient):
-    def __init__(self, session, *, plugin_path="plugins", bot_token=None, **kwargs):
+    def __init__(
+            self, session, *, plugin_path="plugins",
+            bot_token=None, **kwargs):
         # TODO: handle non-string session
         self._name = session
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
 
-        super().__init__(session,
-                17349, "344583e45741c457fe1862106095a5eb", # yarr
+        super().__init__(
+                session,
+                17349, "344583e45741c457fe1862106095a5eb",  # yarr
                 **kwargs)
 
         # This is a hack, please avert your eyes
@@ -87,7 +91,7 @@ class Uniborg(TelegramClient):
                 fut.set_result(event)
                 raise telethon.events.StopPropagation
 
-        fut.add_done_callback(lambda _:
-                self.remove_event_handler(cb, event_matcher))
+        fut.add_done_callback(
+                lambda _: self.remove_event_handler(cb, event_matcher))
 
         return fut
