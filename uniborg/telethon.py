@@ -9,6 +9,7 @@ from pathlib import Path
 
 from telethon import TelegramClient
 import telethon.utils
+import telethon.events
 
 from . import hacks
 
@@ -84,6 +85,7 @@ class Uniborg(TelegramClient):
         async def cb(event):
             if filter is None or await filter(event):
                 fut.set_result(event)
+                raise telethon.events.StopPropagation
 
         fut.add_done_callback(lambda _:
                 self.remove_event_handler(cb, event_matcher))
