@@ -39,7 +39,7 @@ async def delete(event):
     await event.delete()
     command = event.pattern_match.group(1)
     if command == 'edit':
-        text = event.pattern_match.group(2).strip()
+        text = event.pattern_match.group(2)
         if not text:
             return
     target = await get_target_message(event)
