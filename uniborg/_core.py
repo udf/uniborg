@@ -9,6 +9,7 @@ from uniborg import util
 
 DELETE_TIMEOUT = 2
 
+
 @borg.on(util.admin_cmd(r"^\.load (?P<shortname>\w+)$"))
 async def load_reload(event):
     await event.delete()
@@ -19,7 +20,8 @@ async def load_reload(event):
             borg.remove_plugin(shortname)
         borg.load_plugin(shortname)
 
-        msg = await event.respond(f"Successfully (re)loaded plugin {shortname}")
+        msg = await event.respond(
+                f"Successfully (re)loaded plugin {shortname}")
         await asyncio.sleep(DELETE_TIMEOUT)
         await borg.delete_messages(msg.to_id, msg)
 
@@ -27,6 +29,7 @@ async def load_reload(event):
         tb = traceback.format_exc()
         logger.warn(f"Failed to (re)load plugin {shortname}: {tb}")
         await event.respond(f"Failed to (re)load plugin {shortname}: {e}")
+
 
 @borg.on(util.admin_cmd(r"^\.remove (?P<shortname>\w+)$"))
 async def remove(event):

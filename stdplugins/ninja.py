@@ -17,11 +17,13 @@ async def get_target_message(event):
         if message.out:
             return message
 
+
 async def await_read(chat, message):
     chat = telethon.utils.get_peer_id(chat)
+
     async def read_filter(read_event):
-        return telethon.utils.get_peer_id(await read_event.input_chat) == chat \
-                and read_event.is_read(message)
+        return (telethon.utils.get_peer_id(await read_event.input_chat) == chat
+                and read_event.is_read(message))
     fut = borg.await_event(events.MessageRead(inbox=False), read_filter)
 
     if await util.is_read(borg, chat, message):
@@ -29,6 +31,7 @@ async def await_read(chat, message):
         return
 
     await fut
+
 
 @borg.on(util.admin_cmd(r"^\.(del)(?:ete)?$"))
 @borg.on(util.admin_cmd(r"^\.(edit)(.*)$"))

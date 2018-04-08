@@ -9,19 +9,24 @@ from pathlib import Path
 
 from telethon import TelegramClient
 import telethon.utils
+import telethon.events
 
 from . import hacks
 
+
 class Uniborg(TelegramClient):
-    def __init__(self, session, *, plugin_path="plugins", **kwargs):
+    def __init__(
+            self, session, *, plugin_path="plugins",
+            bot_token=None, **kwargs):
         # TODO: handle non-string session
         self._name = session
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
 
-        super().__init__(session,
-                17349, "344583e45741c457fe1862106095a5eb", # yarr
+        super().__init__(
+                session,
+                17349, "344583e45741c457fe1862106095a5eb",  # yarr
                 **kwargs)
 
         # This is a hack, please avert your eyes
@@ -29,7 +34,7 @@ class Uniborg(TelegramClient):
         # precedence
         self._event_builders = hacks.ReverseList()
 
-        self._loop.run_until_complete(self._async_init())
+        self._loop.run_until_complete(self._async_init(bot_token=bot_token))
 
         core_plugin = Path(__file__).parent / "_core.py"
         self.load_plugin_from_file(core_plugin)
@@ -37,8 +42,8 @@ class Uniborg(TelegramClient):
         for p in Path().glob(f"{self._plugin_path}/*.py"):
             self.load_plugin_from_file(p)
 
-    async def _async_init(self):
-        await self.start()
+    async def _async_init(self, **kwargs):
+        await self.start(**kwargs)
 
         self.me = await self.get_me()
         self.uid = telethon.utils.get_peer_id(self.me)
@@ -84,8 +89,9 @@ class Uniborg(TelegramClient):
         async def cb(event):
             if filter is None or await filter(event):
                 fut.set_result(event)
+                raise telethon.events.StopPropagation
 
-        fut.add_done_callback(lambda _:
-                self.remove_event_handler(cb, event_matcher))
+        fut.add_done_callback(
+                lambda _: self.remove_event_handler(cb, event_matcher))
 
         return fut
