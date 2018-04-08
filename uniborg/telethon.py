@@ -40,7 +40,8 @@ class Uniborg(TelegramClient):
     async def _async_init(self):
         await self.start()
 
-        self.uid = telethon.utils.get_peer_id(await self.get_me())
+        self.me = await self.get_me()
+        self.uid = telethon.utils.get_peer_id(self.me)
 
     def run(self):
         self._loop.run_forever()
