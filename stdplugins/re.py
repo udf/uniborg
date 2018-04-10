@@ -46,7 +46,7 @@ def doit(chat_id, match, original):
     if original is not None:
         return actually_doit(original)
     # Try matching the last few messages
-    for original in reversed(last_msgs[chat_id]):
+    for original in last_msgs[chat_id]:
         m, s = actually_doit(original)
         if s is not None:
             return m, s
@@ -61,7 +61,7 @@ async def group_has_regex(group):
 @borg.on(events.NewMessage)
 async def on_message(event):
     chat_id = utils.get_peer_id(await event.input_chat)
-    last_msgs[chat_id].append(event.message)
+    last_msgs[chat_id].appendleft(event.message)
 
 
 @borg.on(events.NewMessage(
@@ -78,7 +78,7 @@ async def on_regex(event):
 
     if m is not None:
         out = await borg.send_message(await event.input_chat, s, reply_to=m.id)
-        last_msgs[chat_id].append(out)
+        last_msgs[chat_id].appendleft(out)
     elif s is not None:
         await event.reply(s)
 
