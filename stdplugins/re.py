@@ -55,7 +55,7 @@ def doit(chat_id, match, original):
 
 async def group_has_regex(group):
     return any(getattr(x, 'username', None) == 'regexbot'
-               async for x in borg.get_participants(group, search='@regexbot'))
+               for x in await borg.get_participants(group, search='@regexbot'))
 
 
 @borg.on(events.NewMessage)
