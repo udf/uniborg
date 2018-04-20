@@ -3,6 +3,13 @@ import re
 
 import regex
 from telethon import events, utils
+from telethon.tl import types, functions
+
+
+KNOWN_RE_BOTS = re.compile(
+    r'(regex|moku|BananaButler_)bot',
+    flags=re.IGNORECASE
+)
 
 # Heavily based on
 # https://github.com/SijmenSchoon/regexbot/blob/master/regexbot.py
@@ -54,8 +61,14 @@ def doit(chat_id, match, original):
 
 
 async def group_has_regex(group):
-    return any(getattr(x, 'username', None) == 'regexbot'
-               for x in await borg.get_participants(group, search='@regexbot'))
+    if isinstance(group, types.InputPeerChannel):
+        full = await borg(functions.channels.GetFullChannelRequest(group))
+    elif isinstance(group, types.InputPeerChat):
+        full = await borg(functions.messages.GetFullChatRequest(group.chat_id))
+    else:
+        return False
+
+    return any(KNOWN_RE_BOTS.match(x.username or '') for x in full.users)
 
 
 @borg.on(events.NewMessage)
