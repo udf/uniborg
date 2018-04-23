@@ -17,10 +17,28 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'.snip (\w+)'))
+@borg.on(events.NewMessage(pattern=r'.snip (.+)'))
 async def on_snip(event):
-    msg = await event.reply_message
     name = event.pattern_match.group(1)
+    if name in snips:
+        snip = snips[name]
+        if snip['type'] == TYPE_PHOTO:
+            media = types.InputPhoto(snip['id'], snip['hash'])
+        elif snip['type'] == TYPE_DOCUMENT:
+            media = types.InputDocument(snip['id'], snip['hash'])
+        else:
+            media = None
+
+        await borg.send_message(
+            await event.input_chat, snip['text'], file=media)
+
+    await event.delete()
+
+
+@borg.on(events.NewMessage(pattern=r'.snips (.+)'))
+async def on_snip_save(event):
+    name = event.pattern_match.group(1)
+    msg = await event.reply_message
     if msg:
         snips.pop(name, None)
         snip = {'type': TYPE_TEXT, 'text': msg.message or ''}
@@ -38,17 +56,6 @@ async def on_snip(event):
 
         snips[name] = snip
         storage.snips = snips
-    elif name in snips:
-        snip = snips[name]
-        if snip['type'] == TYPE_PHOTO:
-            media = types.InputPhoto(snip['id'], snip['hash'])
-        elif snip['type'] == TYPE_DOCUMENT:
-            media = types.InputDocument(snip['id'], snip['hash'])
-        else:
-            media = None
-
-        await borg.send_message(
-            await event.input_chat, snip['text'], file=media)
 
     await event.delete()
 
@@ -59,7 +66,7 @@ async def on_snip_list(event):
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snipd (\w+)'))
+@borg.on(events.NewMessage(pattern=r'.snipd (.+)'))
 async def on_snip_delete(event):
     snips.pop(event.pattern_match.group(1), None)
     await event.delete()
