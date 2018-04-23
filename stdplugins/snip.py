@@ -20,10 +20,11 @@ def remove_snip(name):
                 os.remove(text)
             except Exception as e:
                 print('failed to remove', snip, 'due to', e, file=sys.stderr)
+        del snips[name]
 
 
 @borg.on(events.NewMessage(pattern=r'.snip (\w+)'))
-async def on_message(event):
+async def on_snip(event):
     msg = await event.reply_message
     name = event.pattern_match.group(1)
     if msg:
@@ -42,4 +43,16 @@ async def on_message(event):
         else:
             await borg.send_message(await event.input_chat, text)
 
+    await event.delete()
+
+
+@borg.on(events.NewMessage(pattern=r'.snipl'))
+async def on_snip_list(event):
+    await event.respond('available snips: ' + ', '.join(snips.keys()))
+    await event.delete()
+
+
+@borg.on(events.NewMessage(pattern=r'.snipd (\w+)'))
+async def on_snip_delete(event):
+    remove_snip(event.pattern_match.group(1))
     await event.delete()
