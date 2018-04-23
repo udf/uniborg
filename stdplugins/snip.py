@@ -20,7 +20,9 @@ snips = storage.snips or {}
 @borg.on(events.NewMessage(pattern=r'.snip (\S+)'))
 async def on_snip(event):
     name = event.pattern_match.group(1)
-    if name in snips:
+    if name not in snips:
+        await on_snip_save(event)
+    else:
         snip = snips[name]
         if snip['type'] == TYPE_PHOTO:
             media = types.InputPhoto(snip['id'], snip['hash'])
