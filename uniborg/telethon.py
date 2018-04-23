@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import os
 import asyncio
 import importlib.util
 import logging
@@ -11,15 +11,20 @@ from telethon import TelegramClient
 import telethon.utils
 import telethon.events
 
+from .storage import Storage
 from . import hacks
 
 
 class Uniborg(TelegramClient):
     def __init__(
-            self, session, *, plugin_path="plugins",
+            self, session, *, plugin_path="plugins", storage=None,
             bot_token=None, **kwargs):
         # TODO: handle non-string session
+        #
+        # storage should be a callable accepting plugin name -> Storage object.
+        # This means that using the Storage type as a storage would work too.
         self._name = session
+        self.storage = storage or (lambda n: Storage(os.path.join('data', n)))
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
@@ -64,6 +69,7 @@ class Uniborg(TelegramClient):
 
         mod.borg = self
         mod.logger = logging.getLogger(shortname)
+        mod.storage = self.storage(shortname)
 
         spec.loader.exec_module(mod)
         self._plugins[shortname] = mod
