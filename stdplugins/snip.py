@@ -29,8 +29,9 @@ async def on_snip(event):
         else:
             media = None
 
-        await borg.send_message(
-            await event.input_chat, snip['text'], file=media)
+        await borg.send_message(await event.input_chat, snip['text'],
+                                file=media,
+                                reply_to=event.message.reply_to_msg_id)
 
     await event.delete()
 
