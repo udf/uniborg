@@ -17,7 +17,7 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'.snip (.+)'))
+@borg.on(events.NewMessage(pattern=r'.snip (\S+)'))
 async def on_snip(event):
     name = event.pattern_match.group(1)
     if name in snips:
@@ -36,7 +36,7 @@ async def on_snip(event):
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snips (.+)'))
+@borg.on(events.NewMessage(pattern=r'.snips (\S+)'))
 async def on_snip_save(event):
     name = event.pattern_match.group(1)
     msg = await event.reply_message
@@ -67,7 +67,17 @@ async def on_snip_list(event):
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snipd (.+)'))
+@borg.on(events.NewMessage(pattern=r'.snipd (\S+)'))
 async def on_snip_delete(event):
     snips.pop(event.pattern_match.group(1), None)
+    await event.delete()
+
+
+@borg.on(events.NewMessage(pattern=r'.snipr (\S+)\s+(\S+)'))
+async def on_snip_rename(event):
+    snip = snips.pop(event.pattern_match.group(1), None)
+    if snip:
+        snips[event.pattern_match.group(2)] = snip
+        storage.snips = snips
+
     await event.delete()
