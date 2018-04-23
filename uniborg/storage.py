@@ -5,6 +5,9 @@ import os
 import json
 
 
+FILE_NAME = 'data.json'
+
+
 class Storage:
     class _Guard:
         def __init__(self, storage):
@@ -21,7 +24,11 @@ class Storage:
         self._root = root
         self._autosave = True
         self._guard = self._Guard(self)
-        self._data = {}
+        if os.path.isfile(os.path.join(self._root, FILE_NAME)):
+            with open(os.path.join(self._root, FILE_NAME)) as fp:
+                self._data = json.load(fp)
+        else:
+            self._data = {}
 
     def bulk_save(self):
         return self._guard
@@ -42,5 +49,5 @@ class Storage:
     def _save(self):
         if not os.path.isdir(self._root):
             os.makedirs(self._root, exist_ok=True)
-        with open(os.path.join(self._root, 'data.json'), 'w') as fp:
+        with open(os.path.join(self._root, FILE_NAME), 'w') as fp:
             json.dump(self._data, fp)
