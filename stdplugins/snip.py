@@ -8,19 +8,13 @@ from telethon import events, utils
 from telethon.tl import types, functions
 
 
-# {name: (text, media)}
+TYPE_TEXT = 0
+TYPE_PHOTO = 1
+TYPE_DOCUMENT = 2
+
+
+# {name: {'text': text, 'id': id, 'hash': access_hash, 'type': type}}
 snips = storage.snips or {}
-
-
-def remove_snip(name):
-    if name in snips:
-        text, media = snips[name]
-        if media:
-            try:
-                os.remove(text)
-            except Exception as e:
-                print('failed to remove', snip, 'due to', e, file=sys.stderr)
-        del snips[name]
 
 
 @borg.on(events.NewMessage(pattern=r'.snip (\w+)'))
@@ -28,20 +22,33 @@ async def on_snip(event):
     msg = await event.reply_message
     name = event.pattern_match.group(1)
     if msg:
-        remove_snip(name)
+        snips.pop(name, None)
+        snip = {'type': TYPE_TEXT, 'text': msg.message or ''}
         if msg.media:
-            file = await borg.download_media(
-                msg.media, os.path.join(storage._root, str(uuid.uuid4())))
-            snips[name] = (file, True)
-        else:
-            snips[name] = (msg.message, False)
+            media = None
+            if isinstance(msg.media, types.MessageMediaPhoto):
+                media = utils.get_input_photo(msg.media.photo)
+                snip['type'] = TYPE_PHOTO
+            elif isinstance(msg.media, types.MessageMediaDocument):
+                media = utils.get_input_document(msg.media.document)
+                snip['type'] = TYPE_DOCUMENT
+            if media:
+                snip['id'] = media.id
+                snip['hash'] = media.access_hash
+
+        snips[name] = snip
         storage.snips = snips
     elif name in snips:
-        text, media = snips[name]
-        if media:
-            await borg.send_file(await event.input_chat, text)
+        snip = snips[name]
+        if snip['type'] == TYPE_PHOTO:
+            media = types.InputPhoto(snip['id'], snip['hash'])
+        elif snip['type'] == TYPE_DOCUMENT:
+            media = types.InputDocument(snip['id'], snip['hash'])
         else:
-            await borg.send_message(await event.input_chat, text)
+            media = None
+
+        await borg.send_message(
+            await event.input_chat, snip['text'], file=media)
 
     await event.delete()
 
@@ -54,5 +61,5 @@ async def on_snip_list(event):
 
 @borg.on(events.NewMessage(pattern=r'.snipd (\w+)'))
 async def on_snip_delete(event):
-    remove_snip(event.pattern_match.group(1))
+    snips.pop(event.pattern_match.group(1), None)
     await event.delete()
