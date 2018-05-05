@@ -79,9 +79,7 @@ class Uniborg(TelegramClient):
     def remove_plugin(self, shortname):
         name = self._plugins[shortname].__name__
 
-        i = len(self._event_builders)
-        while i:
-            i -= 1
+        for i in reversed(range(len(self._event_builders))):
             ev, cb = self._event_builders[i]
             if cb.__module__ == name:
                 del self._event_builders[i]
