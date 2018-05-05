@@ -70,7 +70,7 @@ class Uniborg(TelegramClient):
 
         mod.borg = self
         mod.logger = logging.getLogger(shortname)
-        mod.storage = self.storage(shortname)
+        mod.storage = self.storage(f"{self._name}/{shortname}")
 
         spec.loader.exec_module(mod)
         self._plugins[shortname] = mod
