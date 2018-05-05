@@ -39,6 +39,7 @@ class Uniborg(TelegramClient):
         # precedence
         self._event_builders = hacks.ReverseList()
 
+        self._loop = asyncio.get_event_loop()
         self._loop.run_until_complete(self._async_init(bot_token=bot_token))
 
         core_plugin = Path(__file__).parent / "_core.py"
