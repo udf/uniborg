@@ -31,7 +31,7 @@ class Uniborg(TelegramClient):
 
         super().__init__(
                 session,
-                17349, "344583e45741c457fe1862106095a5eb",  # yarr
+                6, "eb06d4abfb49dc3eeb1aeb98ae0f581e",  # yarr
                 **kwargs)
 
         # This is a hack, please avert your eyes
