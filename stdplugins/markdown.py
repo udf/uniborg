@@ -63,25 +63,24 @@ def parse(message):
             match = pattern.match(message, pos=i)
             if match:
                 break
-
-        if match:
-            text, entity = parser(match)
-            # replace whole match with text from parser
-            message = ''.join((
-                message[:match.start()],
-                text,
-                message[match.end():]
-            ))
-
-            # append entity if we got one
-            if entity:
-                entities.append(entity)
-
-            # skip past the match
-            i += len(text)
+        else:
+            i += 1
             continue
 
-        i += 1
+        text, entity = parser(match)
+        # replace whole match with text from parser
+        message = ''.join((
+            message[:match.start()],
+            text,
+            message[match.end():]
+        ))
+
+        # append entity if we got one
+        if entity:
+            entities.append(entity)
+
+        # skip past the match
+        i += len(text)
 
     return _del_surrogate(message), entities
 
