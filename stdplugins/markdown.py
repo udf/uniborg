@@ -32,12 +32,23 @@ def get_tag_parser(tag, entity):
     return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
 
 
+def parse_subreddit(m):
+    text = '/' + m.group(3)
+    entity = MessageEntityTextUrl(
+        offset=m.start(2),
+        length=len(text),
+        url=f'reddit.com{text}'
+    )
+    return m.group(1) + text, entity
+
+
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
     (get_tag_parser('**', MessageEntityBold)),
     (get_tag_parser('__', MessageEntityItalic)),
     (get_tag_parser('```', partial(MessageEntityPre, language=''))),
-    (get_tag_parser('`', MessageEntityCode))
+    (get_tag_parser('`', MessageEntityCode)),
+    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit)
 ]
 
 
