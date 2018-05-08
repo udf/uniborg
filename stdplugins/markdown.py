@@ -42,13 +42,25 @@ def parse_subreddit(m):
     return m.group(1) + text, entity
 
 
+def parse_snip(m):
+    try:
+        name = m.group(1)[1:]
+        snip = borg._plugins['snip'].storage.snips[name]
+        if snip['type'] == borg._plugins['snip'].TYPE_TEXT:
+            return snip['text'], None
+    except KeyError:
+        pass
+    return m.group(1), None
+
+
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
     (get_tag_parser('**', MessageEntityBold)),
     (get_tag_parser('__', MessageEntityItalic)),
     (get_tag_parser('```', partial(MessageEntityPre, language=''))),
     (get_tag_parser('`', MessageEntityCode)),
-    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit)
+    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
+    (re.compile(r'(!\S+)'), parse_snip)
 ]
 
 
