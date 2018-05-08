@@ -57,6 +57,8 @@ PARSED_ENTITIES = (
     MessageEntityBold, MessageEntityItalic, MessageEntityCode,
     MessageEntityPre, MessageEntityTextUrl
 )
+# a matcher is a tuple of (regex pattern, parse function)
+# where the parse function takes the match and returns (text, entity)
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
     (get_tag_parser('**', MessageEntityBold)),
@@ -105,10 +107,12 @@ def parse(message):
 @borg.on(events.NewMessage(outgoing=True))
 async def reparse(event):
     message, msg_entities = await borg._parse_message_text(event.text, parse)
+    # filter out entities that we don't generate
     old_entities = []
     for entity in (event.message.entities or []):
         if isinstance(entity, PARSED_ENTITIES):
             old_entities.append(entity)
+
     if len(old_entities) == len(msg_entities) and event.raw_text == message:
         return
 
