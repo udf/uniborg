@@ -3,9 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from telethon import events
-from telethon.tl.functions.messages import EditMessageRequest
 
-PRINTABLE_ASCII = range(0x20, 0x7f)
+PRINTABLE_ASCII = range(0x21, 0x7f)
 
 
 def aesthetify(string):
@@ -13,17 +12,14 @@ def aesthetify(string):
         c = ord(c)
         if c in PRINTABLE_ASCII:
             c += 0xFF00 - 0x20
+        elif c == ord(" "):
+            c = 0x3000
         yield chr(c)
 
 
-@borg.on(events.NewMessage(pattern=r'.ae (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'.ae\s+(.+)', outgoing=True))
 async def _(event):
     text = event.pattern_match.group(1)
     text = "".join(aesthetify(text))
-
-    await borg(EditMessageRequest(
-        peer=await event.input_chat,
-        id=event.message.id,
-        message=text,
-        no_webpage=not bool(event.message.media)
-    ))
+    await event.edit(text=text, parse_mode=None, link_preview=False)
+    raise events.StopPropagation
