@@ -5,7 +5,7 @@ import regex
 from telethon import events, utils
 from telethon.tl import types, functions
 
-
+HEADER = "[[regex]]\n"
 KNOWN_RE_BOTS = re.compile(
     r'(regex|moku|BananaButler_)bot',
     flags=re.IGNORECASE
@@ -42,8 +42,10 @@ def doit(chat_id, match, original):
 
     def actually_doit(original):
         try:
-            s, i = regex.subn(fr, to, original.message,
-                              count=count, flags=flags)
+            s = original.message
+            if s.startswith(HEADER):
+                s = s[len(HEADER):]
+            s, i = regex.subn(fr, to, s, count=count, flags=flags)
             if i > 0:
                 return original, s
         except Exception as e:
@@ -90,6 +92,7 @@ async def on_regex(event):
     m, s = doit(chat_id, event.pattern_match, await event.reply_message)
 
     if m is not None:
+        s = f"{HEADER}{s}"
         out = await borg.send_message(await event.input_chat, s, reply_to=m.id)
         last_msgs[chat_id].appendleft(out)
     elif s is not None:
