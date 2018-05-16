@@ -19,6 +19,9 @@ oops = "OOPSIE WOOPSIE!! Uwu We madea fucky wucky!! A wittle fucko boingo! " \
 
 @borg.on(events.NewMessage)
 async def on_pat(event):
+    if event.forward:
+        return
+
     user = borg.me.username
 
     if not user or not re.match(fr"(?i)/headpat@{user}", event.raw_text):
