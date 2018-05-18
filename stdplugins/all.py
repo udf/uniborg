@@ -4,8 +4,10 @@
 
 from telethon import events
 
-@borg.on(events.NewMessage(pattern=r".all", outgoing=True))
+@borg.on(events.NewMessage(pattern=r"\.all", outgoing=True))
 async def _(event):
+    if event.forward:
+        return
     await event.delete()
     mentions = "@all"
     async for x in borg.iter_participants(await event.input_chat, 100):
