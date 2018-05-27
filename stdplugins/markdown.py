@@ -66,7 +66,7 @@ MATCHERS = [
     (get_tag_parser('```', partial(MessageEntityPre, language=''))),
     (get_tag_parser('`', MessageEntityCode)),
     (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
-    (re.compile(r'(!\S+)'), parse_snip)
+    (re.compile(r'(!\w+)'), parse_snip)
 ]
 
 
