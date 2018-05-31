@@ -75,8 +75,7 @@ async def group_has_regex(group):
 
 @borg.on(events.NewMessage)
 async def on_message(event):
-    chat_id = utils.get_peer_id(await event.input_chat)
-    last_msgs[chat_id].appendleft(event.message)
+    last_msgs[event.chat_id].appendleft(event.message)
 
 
 @borg.on(events.NewMessage(
