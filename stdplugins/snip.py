@@ -72,6 +72,7 @@ async def on_snip_list(event):
 @borg.on(events.NewMessage(pattern=r'.snipd (\S+)', outgoing=True))
 async def on_snip_delete(event):
     snips.pop(event.pattern_match.group(1), None)
+    storage.snips = snips
     await event.delete()
 
 
