@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import os
 import asyncio
 import importlib.util
 import logging
@@ -24,7 +23,7 @@ class Uniborg(TelegramClient):
         # storage should be a callable accepting plugin name -> Storage object.
         # This means that using the Storage type as a storage would work too.
         self._name = session
-        self.storage = storage or (lambda n: Storage(os.path.join('data', n)))
+        self.storage = storage or (lambda n: Storage(Path("data") / n))
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
