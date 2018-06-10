@@ -70,9 +70,9 @@ MATCHERS = [
 ]
 
 
-def parse(message, old_entities=[]):
+def parse(message, old_entities=None):
     entities = []
-    old_entities = {e.offset: e for e in old_entities}
+    old_entities = {e.offset: e for e in old_entities or []}
 
     i = 0
     message = _add_surrogate(message)
