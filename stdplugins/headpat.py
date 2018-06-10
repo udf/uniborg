@@ -1,15 +1,13 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-from telethon import events, utils
-from telethon.tl import types, functions
-
 import re
-import asyncio
 import random
 import json
 import urllib.request
 import urllib.parse
+
+from telethon import events
 
 pats = []
 oops = "OOPSIE WOOPSIE!! Uwu We madea fucky wucky!! A wittle fucko boingo! " \
@@ -33,7 +31,7 @@ async def on_pat(event):
             pats = json.loads(urllib.request.urlopen(urllib.request.Request(
                 "http://headp.at/js/pats.json",
                 headers={"User-Agent": "Mozilla/5.0 (X11; U; Linux i686) "
-                         "Gecko/20071127 Firefox/2.0.0.11"}
+                                       "Gecko/20071127 Firefox/2.0.0.11"}
             )).read().decode("utf-8"))
         except Exception as e:
             print(e)

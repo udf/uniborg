@@ -21,7 +21,7 @@ async def load_reload(event):
         borg.load_plugin(shortname)
 
         msg = await event.respond(
-                f"Successfully (re)loaded plugin {shortname}")
+            f"Successfully (re)loaded plugin {shortname}")
         await asyncio.sleep(DELETE_TIMEOUT)
         await borg.delete_messages(msg.to_id, msg)
 

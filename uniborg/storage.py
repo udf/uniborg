@@ -1,8 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import os
 import json
+from pathlib import Path
 
 
 FILE_NAME = 'data.json'
@@ -21,11 +21,11 @@ class Storage:
             self._storage._save()
 
     def __init__(self, root):
-        self._root = root
+        self._root = Path(root)
         self._autosave = True
         self._guard = self._Guard(self)
-        if os.path.isfile(os.path.join(self._root, FILE_NAME)):
-            with open(os.path.join(self._root, FILE_NAME)) as fp:
+        if (self._root / FILE_NAME).is_file():
+            with open(self._root / FILE_NAME) as fp:
                 self._data = json.load(fp)
         else:
             self._data = {}
@@ -47,7 +47,7 @@ class Storage:
                 self._save()
 
     def _save(self):
-        if not os.path.isdir(self._root):
-            os.makedirs(self._root, exist_ok=True)
-        with open(os.path.join(self._root, FILE_NAME), 'w') as fp:
+        if not self._root.is_dir():
+            self._root(parents=True, exist_ok=True)
+        with open(self._root / FILE_NAME, 'w') as fp:
             json.dump(self._data, fp)

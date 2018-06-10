@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import os
 import asyncio
 import importlib.util
 import logging
@@ -24,15 +23,15 @@ class Uniborg(TelegramClient):
         # storage should be a callable accepting plugin name -> Storage object.
         # This means that using the Storage type as a storage would work too.
         self._name = session
-        self.storage = storage or (lambda n: Storage(os.path.join('data', n)))
+        self.storage = storage or (lambda n: Storage(Path("data") / n))
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
 
-        super().__init__(
-                session,
-                6, "eb06d4abfb49dc3eeb1aeb98ae0f581e",  # yarr
-                **kwargs)
+        kwargs = {
+            "api_id": 6, "api_hash": "eb06d4abfb49dc3eeb1aeb98ae0f581e",
+            **kwargs}
+        super().__init__(session, **kwargs)
 
         # This is a hack, please avert your eyes
         # We want this in order for the most recently added handler to take
@@ -99,6 +98,6 @@ class Uniborg(TelegramClient):
                 raise
 
         fut.add_done_callback(
-                lambda _: self.remove_event_handler(cb, event_matcher))
+            lambda _: self.remove_event_handler(cb, event_matcher))
 
         return fut
