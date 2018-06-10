@@ -20,7 +20,7 @@ async def is_read(borg, entity, message, is_out=None):
     is_out = getattr(message, "out", is_out)
     if not isinstance(is_out, bool):
         raise ValueError(
-                "Message was id but is_out not provided or not a bool")
+            "Message was id but is_out not provided or not a bool")
     message_id = getattr(message, "id", message)
     if not isinstance(message_id, int):
         raise ValueError("Failed to extract id from message")

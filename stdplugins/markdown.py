@@ -109,7 +109,7 @@ async def reparse(event):
     message, msg_entities = await borg._parse_message_text(event.text, parse)
     # filter out entities that we don't generate
     old_entities = []
-    for entity in (event.message.entities or []):
+    for entity in event.message.entities or []:
         if isinstance(entity, PARSED_ENTITIES):
             old_entities.append(entity)
 
