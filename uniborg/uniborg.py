@@ -28,10 +28,10 @@ class Uniborg(TelegramClient):
         self._plugins = {}
         self._plugin_path = plugin_path
 
-        super().__init__(
-                session,
-                6, "eb06d4abfb49dc3eeb1aeb98ae0f581e",  # yarr
-                **kwargs)
+        kwargs = {
+                "api_id": 6, "api_hash": "eb06d4abfb49dc3eeb1aeb98ae0f581e",
+                **kwargs}
+        super().__init__(session, **kwargs)
 
         # This is a hack, please avert your eyes
         # We want this in order for the most recently added handler to take
