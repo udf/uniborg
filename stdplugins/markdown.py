@@ -70,12 +70,17 @@ MATCHERS = [
 ]
 
 
-def parse(message):
+def parse(message, old_entities=[]):
     entities = []
+    old_entities = {e.offset: e for e in old_entities}
 
     i = 0
     message = _add_surrogate(message)
     while i < len(message):
+        # skip already existing entities if we're at one
+        if i in old_entities:
+            i += old_entities[i].length
+
         # find the first pattern that matches
         for pattern, parser in MATCHERS:
             match = pattern.match(message, pos=i)
@@ -86,6 +91,16 @@ def parse(message):
             continue
 
         text, entity = parser(match)
+
+        # shift old entities after our current position (so they stay in place)
+        shift = len(text) - len(message[match.start():match.end()])
+        if shift:
+            old_entities = old_entities.values()
+            for entity in old_entities:
+                if entity.offset >= i:
+                    entity.offset += shift
+            old_entities = {e.offset: e for e in old_entities}
+
         # replace whole match with text from parser
         message = ''.join((
             message[:match.start()],
@@ -100,20 +115,16 @@ def parse(message):
         # skip past the match
         i += len(text)
 
-    return _del_surrogate(message), entities
+    return _del_surrogate(message), entities + list(old_entities.values())
 
 
 @borg.on(events.MessageEdited(outgoing=True))
 @borg.on(events.NewMessage(outgoing=True))
 async def reparse(event):
-    message, msg_entities = await borg._parse_message_text(event.text, parse)
-    # filter out entities that we don't generate
-    old_entities = []
-    for entity in event.message.entities or []:
-        if isinstance(entity, PARSED_ENTITIES):
-            old_entities.append(entity)
-
-    if len(old_entities) == len(msg_entities) and event.raw_text == message:
+    old_entities = event.message.entities or []
+    parser = partial(parse, old_entities=old_entities)
+    message, msg_entities = await borg._parse_message_text(event.raw_text, parser)
+    if len(old_entities) >= len(msg_entities) and event.raw_text == message:
         return
 
     await borg(EditMessageRequest(
