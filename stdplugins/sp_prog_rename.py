@@ -25,7 +25,9 @@ async def edit_title(title):
     pattern=re.compile(r"(?i)programming (?:&|and) (.+)"), chats=prog_tech_id))
 async def on_name(event):
     new_topic = event.pattern_match.group(1).title()
-    new_title = f"Programming & {new_topic} & Tech"
+    new_title = f"Programming & {new_topic}"
+    if "Tech" not in new_title:
+        new_title += " & Tech"
 
     if len(new_title) > 255 or lock.locked():
         return
@@ -33,7 +35,7 @@ async def on_name(event):
     with (await lock):
         await edit_title(new_title)
         await asyncio.sleep(80)
-    await asyncio.sleep(60)
+    await asyncio.sleep(2 * 60 * 60)
     if lock.locked():
         return
     with (await lock):
