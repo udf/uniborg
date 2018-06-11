@@ -57,7 +57,7 @@ PARSED_ENTITIES = (
     MessageEntityBold, MessageEntityItalic, MessageEntityCode,
     MessageEntityPre, MessageEntityTextUrl
 )
-# a matcher is a tuple of (regex pattern, parse function)
+# A matcher is a tuple of (regex pattern, parse function)
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
@@ -70,13 +70,23 @@ MATCHERS = [
 ]
 
 
-def parse(message):
+def parse(message, old_entities=None):
     entities = []
+    old_entities = sorted(old_entities or [], key=lambda e: e.offset)
 
     i = 0
+    after = 0
     message = _add_surrogate(message)
     while i < len(message):
-        # find the first pattern that matches
+        for after, e in enumerate(old_entities[after:], start=after):
+            # If the next entity is strictly to our right, we're done here
+            if i < e.offset:
+                break
+            # Skip already existing entities if we're at one
+            if i == e.offset:
+                i += e.length
+
+        # Find the first pattern that matches
         for pattern, parser in MATCHERS:
             match = pattern.match(message, pos=i)
             if match:
@@ -86,34 +96,37 @@ def parse(message):
             continue
 
         text, entity = parser(match)
-        # replace whole match with text from parser
+
+        # Shift old entities after our current position (so they stay in place)
+        shift = len(text) - len(match[0])
+        if shift:
+            for e in old_entities[after:]:
+                e.offset += shift
+
+        # Replace whole match with text from parser
         message = ''.join((
             message[:match.start()],
             text,
             message[match.end():]
         ))
 
-        # append entity if we got one
+        # Append entity if we got one
         if entity:
             entities.append(entity)
 
-        # skip past the match
+        # Skip past the match
         i += len(text)
 
-    return _del_surrogate(message), entities
+    return _del_surrogate(message), entities + old_entities
 
 
 @borg.on(events.MessageEdited(outgoing=True))
 @borg.on(events.NewMessage(outgoing=True))
 async def reparse(event):
-    message, msg_entities = await borg._parse_message_text(event.text, parse)
-    # filter out entities that we don't generate
-    old_entities = []
-    for entity in event.message.entities or []:
-        if isinstance(entity, PARSED_ENTITIES):
-            old_entities.append(entity)
-
-    if len(old_entities) == len(msg_entities) and event.raw_text == message:
+    old_entities = event.message.entities or []
+    parser = partial(parse, old_entities=old_entities)
+    message, msg_entities = await borg._parse_message_text(event.raw_text, parser)
+    if len(old_entities) >= len(msg_entities) and event.raw_text == message:
         return
 
     await borg(EditMessageRequest(
