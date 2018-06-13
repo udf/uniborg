@@ -5,7 +5,7 @@ import regex
 from telethon import events, utils
 from telethon.tl import types, functions
 
-HEADER = "[[regex]]\n"
+HEADER = "[[sed]]\n"
 KNOWN_RE_BOTS = re.compile(
     r'(regex|moku|BananaButler_|rgx|l4mR)bot',
     flags=re.IGNORECASE
@@ -62,7 +62,7 @@ def doit(chat_id, match, original):
     return None, None
 
 
-async def group_has_regex(group):
+async def group_has_sedbot(group):
     if isinstance(group, types.InputPeerChannel):
         full = await borg(functions.channels.GetFullChannelRequest(group))
     elif isinstance(group, types.InputPeerChat):
@@ -83,7 +83,7 @@ async def on_message(event):
 async def on_regex(event):
     if event.forward:
         return
-    if not event.is_private and await group_has_regex(await event.input_chat):
+    if not event.is_private and await group_has_sedbot(await event.input_chat):
         return
 
     chat_id = utils.get_peer_id(await event.input_chat)
