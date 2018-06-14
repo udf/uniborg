@@ -14,7 +14,7 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'.snip (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snip (\S+)', outgoing=True))
 async def on_snip(event):
     name = event.pattern_match.group(1)
     if name not in snips:
@@ -35,7 +35,7 @@ async def on_snip(event):
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snips (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snips (\S+)', outgoing=True))
 async def on_snip_save(event):
     name = event.pattern_match.group(1)
     msg = await event.reply_message
@@ -60,20 +60,20 @@ async def on_snip_save(event):
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snipl', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snipl', outgoing=True))
 async def on_snip_list(event):
     await event.respond('available snips: ' + ', '.join(snips.keys()))
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snipd (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snipd (\S+)', outgoing=True))
 async def on_snip_delete(event):
     snips.pop(event.pattern_match.group(1), None)
     storage.snips = snips
     await event.delete()
 
 
-@borg.on(events.NewMessage(pattern=r'.snipr (\S+)\s+(\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snipr (\S+)\s+(\S+)', outgoing=True))
 async def on_snip_rename(event):
     snip = snips.pop(event.pattern_match.group(1), None)
     if snip:
