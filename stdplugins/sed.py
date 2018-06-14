@@ -81,7 +81,7 @@ async def on_message(event):
 @borg.on(events.NewMessage(
     pattern=re.compile(r"^s/((?:\\/|[^/])+)/((?:\\/|[^/])*)(/.*)?")))
 async def on_regex(event):
-    if event.forward:
+    if event.fwd_from:
         return
     if not event.is_private and await group_has_sedbot(await event.input_chat):
         return

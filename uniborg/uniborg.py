@@ -38,7 +38,7 @@ class Uniborg(TelegramClient):
         # precedence
         self._event_builders = hacks.ReverseList()
 
-        self._loop.run_until_complete(self._async_init(bot_token=bot_token))
+        self.loop.run_until_complete(self._async_init(bot_token=bot_token))
 
         core_plugin = Path(__file__).parent / "_core.py"
         self.load_plugin_from_file(core_plugin)
@@ -53,7 +53,7 @@ class Uniborg(TelegramClient):
         self.uid = telethon.utils.get_peer_id(self.me)
 
     def run(self):
-        self._loop.run_forever()
+        self.loop.run_forever()
 
     def load_plugin(self, shortname):
         self.load_plugin_from_file(f"{self._plugin_path}/{shortname}.py")
