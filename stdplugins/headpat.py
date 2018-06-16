@@ -17,7 +17,7 @@ oops = "OOPSIE WOOPSIE!! Uwu We madea fucky wucky!! A wittle fucko boingo! " \
 
 @borg.on(events.NewMessage)
 async def on_pat(event):
-    if event.forward:
+    if event.fwd_from:
         return
 
     user = borg.me.username

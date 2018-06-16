@@ -32,6 +32,19 @@ def get_tag_parser(tag, entity):
     return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
 
 
+PRINTABLE_ASCII = range(0x21, 0x7f)
+def parse_aesthetics(m):
+    def aesthetify(string):
+        for c in string:
+            c = ord(c)
+            if c in PRINTABLE_ASCII:
+                c += 0xFF00 - 0x20
+            elif c == ord(" "):
+                c = 0x3000
+            yield chr(c)
+    return "".join(aesthetify(m[1])), None
+
+
 def parse_subreddit(m):
     text = '/' + m.group(3)
     entity = MessageEntityTextUrl(
@@ -65,6 +78,7 @@ MATCHERS = [
     (get_tag_parser('__', MessageEntityItalic)),
     (get_tag_parser('```', partial(MessageEntityPre, language=''))),
     (get_tag_parser('`', MessageEntityCode)),
+    (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
     (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]
