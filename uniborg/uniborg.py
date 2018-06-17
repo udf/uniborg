@@ -55,7 +55,7 @@ class Uniborg(TelegramClient):
     async def _reconnect_nofail(self):
         while True:
             try:
-                self.connect()
+                await self.connect()
             except ConnectionError:
                 pass
 
