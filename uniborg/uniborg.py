@@ -52,8 +52,20 @@ class Uniborg(TelegramClient):
         self.me = await self.get_me()
         self.uid = telethon.utils.get_peer_id(self.me)
 
+    async def _reconnect_nofail(self):
+        while True:
+            try:
+                await self.connect()
+                return
+            except ConnectionError:
+                pass
+
     def run(self):
-        self.loop.run_forever()
+        while True:
+            try:
+                self.run_until_disconnected()
+            except ConnectionError:
+                self.loop.run_until_complete(self._reconnect_nofail())
 
     def load_plugin(self, shortname):
         self.load_plugin_from_file(f"{self._plugin_path}/{shortname}.py")
