@@ -56,6 +56,7 @@ class Uniborg(TelegramClient):
         while True:
             try:
                 await self.connect()
+                return
             except ConnectionError:
                 pass
 
