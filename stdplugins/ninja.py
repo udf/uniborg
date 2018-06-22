@@ -11,9 +11,10 @@ from uniborg import util
 
 
 async def get_target_message(event):
-    if event.is_reply and (await event.reply_message).from_id == borg.uid:
-        return await event.reply_message
-    async for message in borg.iter_messages(await event.input_chat, limit=20):
+    if event.is_reply and (await event.get_reply_message()).from_id == borg.uid:
+        return await event.get_reply_message()
+    async for message in borg.iter_messages(
+            await event.get_input_chat(), limit=20):
         if message.out:
             return message
 
@@ -22,7 +23,7 @@ async def await_read(chat, message):
     chat = telethon.utils.get_peer_id(chat)
 
     async def read_filter(read_event):
-        return (telethon.utils.get_peer_id(await read_event.input_chat) == chat
+        return (read_event.chat_id == chat
                 and read_event.is_read(message))
     fut = borg.await_event(events.MessageRead(inbox=False), read_filter)
 
@@ -44,7 +45,7 @@ async def delete(event):
             return
     target = await get_target_message(event)
     if target:
-        chat = await event.input_chat
+        chat = await event.get_input_chat()
         await await_read(chat, target)
         await asyncio.sleep(.5)
         if command == 'edit':

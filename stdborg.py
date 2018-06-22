@@ -8,6 +8,6 @@ from uniborg import Uniborg
 
 logging.basicConfig(level=logging.INFO)
 
-borg = Uniborg("stdborg", plugin_path="stdplugins")
+borg = Uniborg("stdborg", plugin_path="stdplugins", connection_retries=None)
 
-borg.run()
+borg.run_until_disconnected()

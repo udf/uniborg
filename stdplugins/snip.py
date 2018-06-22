@@ -28,7 +28,7 @@ async def on_snip(event):
         else:
             media = None
 
-        await borg.send_message(await event.input_chat, snip['text'],
+        await borg.send_message(await event.get_input_chat(), snip['text'],
                                 file=media,
                                 reply_to=event.message.reply_to_msg_id)
 
@@ -38,7 +38,7 @@ async def on_snip(event):
 @borg.on(events.NewMessage(pattern=r'\.snips (\S+)', outgoing=True))
 async def on_snip_save(event):
     name = event.pattern_match.group(1)
-    msg = await event.reply_message
+    msg = await event.get_reply_message()
     if msg:
         snips.pop(name, None)
         snip = {'type': TYPE_TEXT, 'text': msg.message or ''}
