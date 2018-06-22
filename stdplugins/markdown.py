@@ -144,7 +144,7 @@ async def reparse(event):
         return
 
     await borg(EditMessageRequest(
-        peer=await event.input_chat,
+        peer=await event.get_input_chat(),
         id=event.message.id,
         message=message,
         no_webpage=not bool(event.message.media),

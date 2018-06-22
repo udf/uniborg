@@ -10,6 +10,6 @@ async def _(event):
         return
     await event.delete()
     mentions = "@all"
-    async for x in borg.iter_participants(await event.input_chat, 100):
+    async for x in borg.iter_participants(await event.get_input_chat(), 100):
         mentions += f"[\u2063](tg://user?id={x.id})"
     await event.respond(mentions)

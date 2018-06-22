@@ -83,16 +83,19 @@ async def on_message(event):
 async def on_regex(event):
     if event.fwd_from:
         return
-    if not event.is_private and await group_has_sedbot(await event.input_chat):
+    if not event.is_private and\
+            await group_has_sedbot(await event.get_input_chat()):
         return
 
-    chat_id = utils.get_peer_id(await event.input_chat)
+    chat_id = utils.get_peer_id(await event.get_input_chat())
 
-    m, s = doit(chat_id, event.pattern_match, await event.reply_message)
+    m, s = doit(chat_id, event.pattern_match, await event.get_reply_message())
 
     if m is not None:
         s = f"{HEADER}{s}"
-        out = await borg.send_message(await event.input_chat, s, reply_to=m.id)
+        out = await borg.send_message(
+            await event.get_input_chat(), s, reply_to=m.id
+        )
         last_msgs[chat_id].appendleft(out)
     elif s is not None:
         await event.reply(s)
