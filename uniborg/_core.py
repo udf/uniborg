@@ -36,7 +36,9 @@ async def remove(event):
     await event.delete()
     shortname = event.pattern_match["shortname"]
 
-    if shortname in borg._plugins:
+    if shortname == "_core":
+        msg = await event.respond(f"Not removing {shortname}")
+    elif shortname in borg._plugins:
         borg.remove_plugin(shortname)
         msg = await event.respond(f"Removed plugin {shortname}")
     else:

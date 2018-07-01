@@ -37,9 +37,7 @@ async def handler(event):
 
 The core features offered by the custom `TelegramClient` live under the
 [`uniborg/`](https://github.com/uniborg/uniborg/tree/master/uniborg)
-directory, with some utilities, enhancements and the core plugin, which
-can be unloaded in itself (something fun to do, but you will probably
-want to restart your borg after).
+directory, with some utilities, enhancements and the core plugin.
 
 ## learning
 
