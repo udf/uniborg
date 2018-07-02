@@ -77,6 +77,12 @@ async def group_has_sedbot(group):
 async def on_message(event):
     last_msgs[event.chat_id].appendleft(event.message)
 
+@borg.on(events.MessageEdited)
+async def on_edit(event):
+    for m in last_msgs[event.chat_id]:
+        if m.id == event.id:
+            m.raw_text = event.raw_text
+            break
 
 @borg.on(events.NewMessage(
     pattern=re.compile(r"^s/((?:\\/|[^/])+)/((?:\\/|[^/])*)(/.*)?")))
