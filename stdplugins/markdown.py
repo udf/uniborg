@@ -6,9 +6,8 @@ from functools import partial
 
 from telethon import events
 from telethon.tl.functions.messages import EditMessageRequest
-from telethon.extensions.markdown import (
-    DEFAULT_URL_RE, _add_surrogate, _del_surrogate
-)
+from telethon.extensions.markdown import DEFAULT_URL_RE
+from telethon.utils import add_surrogate, del_surrogate
 from telethon.tl.types import (
     MessageEntityBold, MessageEntityItalic, MessageEntityCode,
     MessageEntityPre, MessageEntityTextUrl
@@ -19,7 +18,7 @@ def parse_url_match(m):
     entity = MessageEntityTextUrl(
         offset=m.start(),
         length=len(m.group(1)),
-        url=_del_surrogate(m.group(2))
+        url=del_surrogate(m.group(2))
     )
     return m.group(1), entity
 
@@ -90,7 +89,7 @@ def parse(message, old_entities=None):
 
     i = 0
     after = 0
-    message = _add_surrogate(message)
+    message = add_surrogate(message)
     while i < len(message):
         for after, e in enumerate(old_entities[after:], start=after):
             # If the next entity is strictly to our right, we're done here
@@ -131,7 +130,7 @@ def parse(message, old_entities=None):
         # Skip past the match
         i += len(text)
 
-    return _del_surrogate(message), entities + old_entities
+    return del_surrogate(message), entities + old_entities
 
 
 @borg.on(events.MessageEdited(outgoing=True))
