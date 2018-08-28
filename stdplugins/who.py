@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from telethon import events
+from telethon import utils
 from telethon.tl import types
 
 
@@ -16,14 +17,9 @@ async def _(event):
             who = await borg.get_entity(
                 msg.forward.from_id or msg.forward.channel_id)
         else:
-            who = await borg.get_entity(msg.from_id)
+            who = await msg.get_sender()
 
-    if isinstance(who, types.User):
-        who_string = who.first_name
-        if who.last_name:
-            who_string += f" {who.last_name}"
-    else:
-        who_string = who.title
+    who_string = utils.get_display_name(who)
     if isinstance(who, (types.User, types.Channel)) and who.username:
         who_string += f" (@{who.username})"
     who_string += f", #{who.id}"
