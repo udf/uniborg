@@ -22,8 +22,7 @@ EPIC_MEME = (
 
 @borg.on(events.NewMessage(pattern=r"^h$"))
 async def on_h(event):
-    message = await event.reply(
-        file=types.InputDocument(421851232546587302, -6059663575626880183))
+    await borg.reply(file="CAADAQADpgIAAna32gVJ62JcFcDnqwI")
 
     async def del_filter(del_event):
         if del_event.chat_id and del_event.chat_id != event.chat_id:
@@ -36,4 +35,3 @@ async def on_h(event):
         await event.reply(EPIC_MEME)
     except asyncio.TimeoutError:
         pass
-
