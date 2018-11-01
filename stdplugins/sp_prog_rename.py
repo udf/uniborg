@@ -17,7 +17,7 @@ def fix_title(s):
         token = m.group(1)
         if token.lower() == 'and':
             token = '&'
-        return token.capitalize() + (' ' if m.group(2) else '')
+        return token[0].upper() + token[1:] + (' ' if m.group(2) else '')
     return re.sub(r'(\S+)(\s+)?', replace, s)
 
 
