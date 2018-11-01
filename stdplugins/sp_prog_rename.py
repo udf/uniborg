@@ -1,10 +1,9 @@
 import asyncio
+import re
+
 from telethon import events
 from telethon.tl.functions.channels import EditTitleRequest
 
-import telethon.utils
-
-import re
 
 prog_tech_id = 1040270887
 prog_tech_channel = None
