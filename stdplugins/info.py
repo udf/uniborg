@@ -10,10 +10,9 @@ from telethon.tl.types import MessageEntityPre
 from telethon.tl.tlobject import TLObject
 import datetime
 
-from telethon.tl.patched import Message
-from telethon.tl.types import PeerUser
-
 PRINTABLE_SET = set(bytes(string.printable, 'ascii'))
+STR_LEN_MAX = 256
+BYTE_LEN_MAX = 64
 
 
 def parse_pre(text):
@@ -55,15 +54,15 @@ def yaml_format(obj, indent=0):
             result.append(' ' * indent)
     elif isinstance(obj, str):
         # truncate long strings and display elipsis
-        result.append(repr(obj[:80]))
-        if len(obj) > 80:
+        result.append(repr(obj[:STR_LEN_MAX]))
+        if len(obj) > STR_LEN_MAX:
             result.append('…')
     elif isinstance(obj, bytes):
         # repr() bytes if it's printable, hex like "FF EE BB" otherwise
         if all(c in PRINTABLE_SET for c in obj):
             result.append(repr(obj))
         else:
-            if len(obj) > 64:
+            if len(obj) > BYTE_LEN_MAX:
                 result.append('<…>')
             else:
                 result.append(' '.join(f'{b:02X}' for b in obj))
@@ -93,7 +92,6 @@ async def _(event):
         return
     msg = await event.message.get_reply_message()
     yaml_text = yaml_format(msg)
-    print(len(yaml_text), yaml_text)
     await event.edit(
         yaml_text,
         parse_mode=parse_pre
