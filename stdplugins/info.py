@@ -10,9 +10,6 @@ from telethon.tl.types import MessageEntityPre
 from telethon.tl.tlobject import TLObject
 import datetime
 
-from telethon.tl.patched import Message
-from telethon.tl.types import PeerUser
-
 PRINTABLE_SET = set(bytes(string.printable, 'ascii'))
 
 
