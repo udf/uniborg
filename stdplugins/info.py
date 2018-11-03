@@ -44,8 +44,11 @@ def yaml_format(obj, indent=0):
             for k, v in items:
                 if k == '_' or v is None:
                     continue
+                formatted = yaml_format(v, indent)
+                if not formatted.strip():
+                    continue
                 result.append(' ' * (indent if has_multiple_items else 1))
-                result.append(f'{k}: {yaml_format(v, indent)}')
+                result.append(f'{k}: {formatted}')
                 result.append('\n')
             result.pop()
             indent -= 2
