@@ -63,7 +63,10 @@ def yaml_format(obj, indent=0):
         if all(c in PRINTABLE_SET for c in obj):
             result.append(repr(obj))
         else:
-            result.append(' '.join(f'{b:02X}' for b in obj))
+            if len(obj) > 64:
+                result.append('<…>')
+            else:
+                result.append(' '.join(f'{b:02X}' for b in obj))
     elif isinstance(obj, datetime.datetime):
         # ISO-8601 without timezone offset (telethon dates are always UTC)
         result.append(obj.strftime('%Y-%m-%d %H:%M:%S'))
