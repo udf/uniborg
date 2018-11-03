@@ -8,10 +8,7 @@ from telethon import events
 from telethon.tl.functions.messages import EditMessageRequest
 from telethon.extensions.markdown import DEFAULT_URL_RE
 from telethon.utils import add_surrogate, del_surrogate
-from telethon.tl.types import (
-    MessageEntityBold, MessageEntityItalic, MessageEntityCode,
-    MessageEntityPre, MessageEntityTextUrl
-)
+from telethon.tl.types import MessageEntityTextUrl
 
 
 def parse_url_match(m):
@@ -21,14 +18,6 @@ def parse_url_match(m):
         url=del_surrogate(m.group(2))
     )
     return m.group(1), entity
-
-
-def get_tag_parser(tag, entity):
-    # TODO unescape escaped tags?
-    def tag_parser(m):
-        return m.group(1), entity(offset=m.start(), length=len(m.group(1)))
-    tag = re.escape(tag)
-    return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
 
 
 PRINTABLE_ASCII = range(0x21, 0x7f)
