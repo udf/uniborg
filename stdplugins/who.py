@@ -22,6 +22,6 @@ async def _(event):
     who_string = utils.get_display_name(who)
     if isinstance(who, (types.User, types.Channel)) and who.username:
         who_string += f" (@{who.username})"
-    who_string += f", #{who.id}"
+    who_string += f", [#{who.id}](tg://user?id={who.id})"
 
     await event.edit(who_string)
