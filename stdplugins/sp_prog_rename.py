@@ -60,7 +60,7 @@ async def on_name(event):
         )))
         if await wait_for_delete(deleted_fut, MULTI_EDIT_TIMEOUT):
             return
-    if await wait_for_delete(deleted_fut, MULTI_EDIT_TIMEOUT) or lock.locked():
+    if await wait_for_delete(deleted_fut, REVERT_TIMEOUT) or lock.locked():
         return
     with (await lock):
         await edit_title(DEFAULT_TITLE)
