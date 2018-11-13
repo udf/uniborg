@@ -31,6 +31,16 @@ async def edit_title(title):
     ))
 
 
+async def wait_for_delete(deleted_fut, timeout):
+    try:
+        await asyncio.wait_for(deleted_fut, timeout)
+        await edit_title(DEFAULT_TITLE)
+        return True
+    except (asyncio.TimeoutError, asyncio.CancelledError):
+        pass
+    return False
+
+
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)programming (?:&|and) (.+)"), chats=CHANNEL_ID))
 async def on_name(event):
@@ -44,9 +54,13 @@ async def on_name(event):
 
     with (await lock):
         await edit_title(new_title)
-        await asyncio.sleep(MULTI_EDIT_TIMEOUT)
-    await asyncio.sleep(REVERT_TIMEOUT)
-    if lock.locked():
+        deleted_fut = asyncio.shield(borg.await_event(events.MessageDeleted(
+            chats=CHANNEL_ID,
+            func=lambda e: e.deleted_id == event.message.id
+        )))
+        if await wait_for_delete(deleted_fut, MULTI_EDIT_TIMEOUT):
+            return
+    if await wait_for_delete(deleted_fut, MULTI_EDIT_TIMEOUT) or lock.locked():
         return
     with (await lock):
         await edit_title(DEFAULT_TITLE)
