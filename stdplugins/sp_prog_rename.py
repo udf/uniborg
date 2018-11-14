@@ -59,6 +59,7 @@ async def on_name(event):
             func=lambda e: e.deleted_id == event.message.id
         )))
         if await wait_for_delete(deleted_fut, MULTI_EDIT_TIMEOUT):
+            await asyncio.sleep(MULTI_EDIT_TIMEOUT)
             return
     if await wait_for_delete(deleted_fut, REVERT_TIMEOUT) or lock.locked():
         return
