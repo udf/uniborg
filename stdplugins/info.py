@@ -10,7 +10,7 @@ from telethon.tl.types import MessageEntityPre
 from telethon.tl.tlobject import TLObject
 import datetime
 
-PRINTABLE_SET = set(bytes(string.printable, 'ascii'))
+PRINTABLE_SET = set(string.printable.encode())
 STR_LEN_MAX = 256
 BYTE_LEN_MAX = 64
 
@@ -19,7 +19,7 @@ def parse_pre(text):
     text = text.strip()
     return (
         text,
-        [MessageEntityPre(offset=0, length=len(add_surrogate(text)), language='potato')]
+        [MessageEntityPre(offset=0, length=len(add_surrogate(text)), language='')]
     )
 
 
