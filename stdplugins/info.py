@@ -74,8 +74,7 @@ def yaml_format(obj, indent=0):
         result.append('\n')
         indent += 2
         for x in obj:
-            result.append(' ' * indent)
-            result.append(yaml_format(x, indent))
+            result.append(f"{' ' * indent}- {yaml_format(x, indent + 2)}")
             result.append('\n')
         result.pop()
         indent -= 2
