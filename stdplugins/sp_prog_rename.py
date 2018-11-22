@@ -3,6 +3,7 @@ import re
 
 from telethon import events
 from telethon.tl.functions.channels import EditTitleRequest
+from telethon.errors.rpcerrorlist import ChatNotModifiedError
 
 MULTI_EDIT_TIMEOUT = 80
 REVERT_TIMEOUT = 2 * 60 * 60
@@ -26,9 +27,12 @@ async def edit_title(title):
     global prog_tech_channel
     if prog_tech_channel is None:
         prog_tech_channel = await borg.get_entity(CHANNEL_ID)
-    await borg(EditTitleRequest(
-        channel=prog_tech_channel, title=title
-    ))
+    try:
+        await borg(EditTitleRequest(
+            channel=prog_tech_channel, title=title
+        ))
+    except ChatNotModifiedError:
+        pass  # Everything is ok
 
 
 async def wait_for_delete(deleted_fut, timeout):
