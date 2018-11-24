@@ -11,15 +11,6 @@ import telethon.utils
 from uniborg import util
 
 
-async def get_target_message(event):
-    if event.is_reply and (await event.get_reply_message()).from_id == borg.uid:
-        return await event.get_reply_message()
-    async for message in borg.iter_messages(
-            await event.get_input_chat(), limit=20):
-        if message.out:
-            return message
-
-
 async def await_read(chat, message):
     if isinstance(chat, InputPeerSelf):
         return
@@ -46,7 +37,7 @@ async def delete(event):
         text = event.pattern_match.group(2)
         if not text:
             return
-    target = await get_target_message(event)
+    target = await util.get_target_message(borg, event)
     if target:
         chat = await event.get_input_chat()
         await await_read(chat, target)

@@ -28,3 +28,12 @@ async def is_read(borg, entity, message, is_out=None):
     dialog = (await borg(GetPeerDialogsRequest([entity]))).dialogs[0]
     max_id = dialog.read_outbox_max_id if is_out else dialog.read_inbox_max_id
     return message_id <= max_id
+
+
+async def get_target_message(borg, event):
+    if event.is_reply and (await event.get_reply_message()).from_id == borg.uid:
+        return await event.get_reply_message()
+    async for message in borg.iter_messages(
+            await event.get_input_chat(), limit=20):
+        if message.out:
+            return message
