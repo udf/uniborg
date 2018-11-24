@@ -1,3 +1,7 @@
+"""
+Reply to a message with .s <n> to forward <n> messages from that point to your
+saved messages (negative values of <n> go backwards in history)
+"""
 import asyncio
 
 from stdplugins.kbass_core import self_reply_selector

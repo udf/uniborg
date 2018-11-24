@@ -1,3 +1,6 @@
+"""
+Reply to a file with .f to send it as a photo
+"""
 from io import BytesIO
 
 from stdplugins.kbass_core import self_reply_cmd

@@ -1,3 +1,6 @@
+"""
+Contains code used by other kbass_* plugins
+"""
 from uniborg import util
 
 

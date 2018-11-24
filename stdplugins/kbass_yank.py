@@ -1,4 +1,7 @@
-
+"""
+Like save but makes a draft in your chat of all the messages concatenated with
+two newlines
+"""
 import html
 
 from telethon.tl.functions.messages import SaveDraftRequest

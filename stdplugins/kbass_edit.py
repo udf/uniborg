@@ -1,3 +1,8 @@
+"""
+Reply to a message with .e to make a draft of it (with '\n.e' appended)
+Reply to your own message with <text>.e to edit the message to <text>
+if <text> is ".", the message is edited to empty/deleted
+"""
 import asyncio
 
 from telethon.errors import MessageEmptyError
