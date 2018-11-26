@@ -3,13 +3,17 @@ Reply to a file with .f to send it as a photo
 """
 from io import BytesIO
 
-from stdplugins.kbass_core import self_reply_cmd
+from uniborg import util
+
 from telethon import types
 from telethon.errors import PhotoInvalidDimensionsError
+from telethon.tl.functions.messages import SendMediaRequest
 
 
-@self_reply_cmd(borg, r"^\.f$")
-async def on_file_to_photo(event, target):
+@borg.on(util.admin_cmd(r"^\.f$"))
+async def on_file_to_photo(event):
+    await event.delete()
+    target = await event.get_reply_message()
     try:
         image = target.media.document
     except AttributeError:
@@ -24,11 +28,15 @@ async def on_file_to_photo(event, target):
     file = await borg.download_media(target, file=BytesIO())
     file.seek(0)
     img = await borg.upload_file(file)
+    img.name = 'image.png'
 
     try:
-        await event.respond(
-            reply_to=target,
-            file=types.InputMediaUploadedPhoto(img)
-        )
+        await borg(SendMediaRequest(
+            peer=await event.get_input_chat(),
+            media=types.InputMediaUploadedPhoto(img),
+            message=target.message,
+            entities=target.entities,
+            reply_to_msg_id=target.id
+        ))
     except PhotoInvalidDimensionsError:
         return
