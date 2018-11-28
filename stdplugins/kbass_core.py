@@ -13,12 +13,8 @@ async def get_target_message(event):
     target = await event.get_reply_message()
     if event.is_reply and target.from_id == borg.uid:
         return target
-    if target:
-        return None
-    async for target in borg.iter_messages(
-            await event.get_input_chat(), limit=20):
-        if target.out:
-            return target
+    if not target:
+        return await util.get_recent_self_message(borg, event)
 
 
 def self_reply_cmd(borg, pattern):
