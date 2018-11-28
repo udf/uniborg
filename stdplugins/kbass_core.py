@@ -4,7 +4,7 @@ Contains code used by other kbass_* plugins
 from uniborg import util
 
 
-async def get_target_message(event):
+async def get_target_message(borg, event):
     """
     If the event is a reply, returns the reply message if it's from us
     If event is not a reply, then it tries to return the most recent message
@@ -22,7 +22,7 @@ def self_reply_cmd(borg, pattern):
         @borg.on(util.admin_cmd(pattern))
         async def wrapped(event, *args, **kwargs):
             await event.delete()
-            target = await get_target_message(event)
+            target = await get_target_message(borg, event)
             if not target:
                 return
             return await function(event, target, *args, **kwargs)
