@@ -23,19 +23,18 @@ async def on_edit_start(event, target):
     ))
 
 
-@self_reply_cmd(borg, r'(?ms)^(.+)\n\.e$')
+@self_reply_cmd(borg, r'(?ms)^(.+\n|\.)\.e$')
 async def on_edit_end(event, target):
     text = event.pattern_match.group(1)
-    message = event.message.message[:-2]
-    if message.strip() == '.':
-        message = ''
+    if text == '.':
+        text = ''
     chat = await event.get_input_chat()
     try:
         await borg(EditMessageRequest(
             peer=chat,
             id=target.id,
             no_webpage=not target.media,
-            message=message,
+            message=text,
             entities=event.message.entities
         ))
     except MessageEmptyError:
