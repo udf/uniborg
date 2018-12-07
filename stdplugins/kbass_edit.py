@@ -29,9 +29,10 @@ async def on_edit_end(event, target):
     message = event.message.message[:-2]
     if message.strip() == '.':
         message = ''
+    chat = await event.get_input_chat()
     try:
         await borg(EditMessageRequest(
-            peer=await event.get_input_chat(),
+            peer=chat,
             id=target.id,
             no_webpage=not target.media,
             message=message,
