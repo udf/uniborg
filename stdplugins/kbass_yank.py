@@ -21,7 +21,7 @@ async def on_yank(event, targets, num_offset):
     message = '\n\n'.join(get_message_html(target) for target in targets)
     message, entities = thtml.parse(message)
     await borg(SaveDraftRequest(
-        peer='me',
+        peer=await event.get_input_chat(),
         message=message,
         entities=entities,
         no_webpage=True,
