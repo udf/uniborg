@@ -5,6 +5,7 @@
 import asyncio
 
 from telethon import events
+from telethon.tl.types import InputPeerSelf
 import telethon.utils
 
 from uniborg import util
@@ -20,6 +21,8 @@ async def get_target_message(event):
 
 
 async def await_read(chat, message):
+    if isinstance(chat, InputPeerSelf):
+        return
     chat = telethon.utils.get_peer_id(chat)
 
     async def read_filter(read_event):
