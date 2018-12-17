@@ -48,6 +48,6 @@ class Storage:
 
     def _save(self):
         if not self._root.is_dir():
-            self._root(parents=True, exist_ok=True)
+            self._root.mkdir(parents=True, exist_ok=True)
         with open(self._root / FILE_NAME, 'w') as fp:
             json.dump(self._data, fp)
