@@ -2,15 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import string
-
 from telethon import events
 from telethon.utils import add_surrogate
 from telethon.tl.types import MessageEntityPre
 from telethon.tl.tlobject import TLObject
 import datetime
 
-PRINTABLE_SET = set(string.printable.encode())
 STR_LEN_MAX = 256
 BYTE_LEN_MAX = 64
 
@@ -61,7 +58,7 @@ def yaml_format(obj, indent=0):
         return result
     elif isinstance(obj, bytes):
         # repr() bytes if it's printable, hex like "FF EE BB" otherwise
-        if all(c in PRINTABLE_SET for c in obj):
+        if all(0x20 <= c < 0x7f for c in obj):
             return repr(obj)
         else:
             return ('<…>' if len(obj) > BYTE_LEN_MAX else
@@ -91,7 +88,4 @@ async def _(event):
         return
     msg = await event.message.get_reply_message()
     yaml_text = yaml_format(msg)
-    await event.edit(
-        yaml_text,
-        parse_mode=parse_pre
-    )
+    await event.edit(yaml_text, parse_mode=parse_pre)
