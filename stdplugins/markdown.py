@@ -31,16 +31,15 @@ def get_tag_parser(tag, entity):
     return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
 
 
-PRINTABLE_ASCII = range(0x21, 0x7f)
 def parse_aesthetics(m):
     def aesthetify(string):
         for c in string:
-            c = ord(c)
-            if c in PRINTABLE_ASCII:
-                c += 0xFF00 - 0x20
-            elif c == ord(" "):
-                c = 0x3000
-            yield chr(c)
+            if " " < c <= "~":
+                yield chr(ord(c) + 0xFF00 - 0x20)
+            elif c == " ":
+                yield "\u3000"
+            else:
+                yield c
     return "".join(aesthetify(m[1])), None
 
 
