@@ -102,6 +102,8 @@ def parse(message, old_entities=None):
             # Skip already existing entities if we're at one
             if i == e.offset:
                 i += e.length
+        else:
+            after += 1
 
         # Find the first pattern that matches
         for pattern, parser in MATCHERS:
