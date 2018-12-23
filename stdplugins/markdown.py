@@ -20,17 +20,20 @@ def parse_url_match(m):
     return m.group(1), entity
 
 
-PRINTABLE_ASCII = range(0x21, 0x7f)
 def parse_aesthetics(m):
     def aesthetify(string):
         for c in string:
-            c = ord(c)
-            if c in PRINTABLE_ASCII:
-                c += 0xFF00 - 0x20
-            elif c == ord(" "):
-                c = 0x3000
-            yield chr(c)
+            if " " < c <= "~":
+                yield chr(ord(c) + 0xFF00 - 0x20)
+            elif c == " ":
+                yield "\u3000"
+            else:
+                yield c
     return "".join(aesthetify(m[1])), None
+
+
+def parse_strikethrough(m):
+    return ("\u0336".join(m[1]) + "\u0336"), None
 
 
 def parse_subreddit(m):
@@ -59,6 +62,7 @@ def parse_snip(m):
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
     (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
+    (re.compile(r'~~(.+?)~~'), parse_strikethrough),
     (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]
@@ -79,6 +83,8 @@ def parse(message, old_entities=None):
             # Skip already existing entities if we're at one
             if i == e.offset:
                 i += e.length
+        else:
+            after += 1
 
         # Find the first pattern that matches
         for pattern, parser in MATCHERS:

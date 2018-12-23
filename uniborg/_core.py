@@ -10,7 +10,7 @@ from uniborg import util
 DELETE_TIMEOUT = 2
 
 
-@borg.on(util.admin_cmd(r"^\.load (?P<shortname>\w+)$"))
+@borg.on(util.admin_cmd(r"^\.(?:re)?load (?P<shortname>\w+)$"))
 async def load_reload(event):
     await event.delete()
     shortname = event.pattern_match["shortname"]
