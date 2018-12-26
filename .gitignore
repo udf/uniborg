@@ -1,6 +1,7 @@
 venv
 __pycache__
 
+api_key.py
 *.session
 *.session-journal
 data/
