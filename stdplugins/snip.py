@@ -22,9 +22,9 @@ async def on_snip(event):
     else:
         snip = snips[name]
         if snip['type'] == TYPE_PHOTO:
-            media = types.InputPhoto(snip['id'], snip['hash'])
+            media = types.InputPhoto(snip['id'], snip['hash'], file_reference=b'')
         elif snip['type'] == TYPE_DOCUMENT:
-            media = types.InputDocument(snip['id'], snip['hash'])
+            media = types.InputDocument(snip['id'], snip['hash'], file_reference=b'')
         else:
             media = None
 
