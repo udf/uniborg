@@ -9,19 +9,42 @@ blanks = (
     '\u180e\u200b\u200c\u200d\u2060\u2061\u2062\u2063\u2064\u2066'
     '\u2067\u2068\u2069\u206a\u206b\u206c\u206d\u206e\u206f\ufeff'
 )
-
 blanks_re = re.compile('|'.join(re.escape(c) for c in blanks))
 
+person_id = 217924941
+lonami_id = 10885151
+
+
 @borg.on(events.NewMessage)
-async def on_him(event):
-    if event.from_id != 10885151:
+async def on_fwd_person(event):
+    if not event.fwd_from or event.fwd_from.from_id != person_id:
+        return
+
+    async def lonami_msg_filter(msg):
+        return msg.from_id == lonami_id
+
+    chat = await event.get_input_chat()
+    fut = borg.await_event(
+            events.NewMessage(chats=chat),
+            lonami_msg_filter
+        )
+
+    try:
+        msg_event = await asyncio.wait_for(fut, timeout=5)
+        await borg.delete_messages(chat, msg_event.message)
+    except asyncio.TimeoutError:
+        pass
+
+
+@borg.on(events.NewMessage)
+async def on_him_reply(event):
+    if event.from_id != lonami_id:
         return
     reply = await event.get_reply_message()
-    if not reply.fwd_from:
+    if not reply or not reply.fwd_from:
         return
-    if reply.fwd_from.from_id != 217924941:
+    if reply and reply.fwd_from.from_id != person_id:
         return
-    delta = reply.date.timestamp() - event.date.timestamp()
     text = blanks_re.sub('', event.raw_text)
-    if text.startswith('>') or delta <= 3:
+    if text.startswith('>'):
         await event.delete()
