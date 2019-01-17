@@ -1,11 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import asyncio
 from telethon import events, utils
 from telethon.tl import types
-
-loop = asyncio.get_event_loop()
 
 TYPE_TEXT = 0
 TYPE_PHOTO = 1
@@ -18,7 +15,7 @@ snips = storage.snips or {}
 
 @borg.on(events.NewMessage(pattern=r'\.snip (\S+)', outgoing=True))
 async def on_snip(event):
-    loop.create_task(event.delete())
+    await event.delete()
     name = event.pattern_match.group(1)
     if name not in snips:
         return
@@ -38,7 +35,7 @@ async def on_snip(event):
 
 @borg.on(events.NewMessage(pattern=r'\.snips (\S+)', outgoing=True))
 async def on_snip_save(event):
-    loop.create_task(event.delete())
+    await event.delete()
     name = event.pattern_match.group(1)
     msg = await event.get_reply_message()
     if not msg:
@@ -64,20 +61,20 @@ async def on_snip_save(event):
 
 @borg.on(events.NewMessage(pattern=r'\.snipl', outgoing=True))
 async def on_snip_list(event):
-    loop.create_task(event.delete())
+    await event.delete()
     await event.respond('available snips: ' + ', '.join(snips.keys()))
 
 
 @borg.on(events.NewMessage(pattern=r'\.snipd (\S+)', outgoing=True))
 async def on_snip_delete(event):
-    loop.create_task(event.delete())
+    await event.delete()
     snips.pop(event.pattern_match.group(1), None)
     storage.snips = snips
 
 
 @borg.on(events.NewMessage(pattern=r'\.snipr (\S+)\s+(\S+)', outgoing=True))
 async def on_snip_rename(event):
-    loop.create_task(event.delete())
+    await event.delete()
     snip = snips.pop(event.pattern_match.group(1), None)
     if snip:
         snips[event.pattern_match.group(2)] = snip
