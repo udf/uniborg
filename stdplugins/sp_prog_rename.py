@@ -5,12 +5,13 @@ from telethon import events
 from telethon.tl.functions.channels import EditTitleRequest
 from telethon.errors.rpcerrorlist import ChatNotModifiedError
 
-MULTI_EDIT_TIMEOUT = 10 #80
-REVERT_TIMEOUT = 25 #2 * 60 * 60
-CHANNEL_ID = 1286178907 #1040270887
+MULTI_EDIT_TIMEOUT = 80
+REVERT_TIMEOUT = 2 * 60 * 60
+CHANNEL_ID = 1040270887
 DEFAULT_TITLE = "Programming & Tech"
 prog_tech_channel = None
 rename_lock = asyncio.Lock()
+revert_task = None
 
 
 def fix_title(s):
@@ -38,16 +39,21 @@ async def edit_title(title):
 async def wait_for_delete(deleted_fut, timeout):
     try:
         await asyncio.wait_for(deleted_fut, timeout)
-        await edit_title(DEFAULT_TITLE)
         return True
     except asyncio.TimeoutError:
         pass
     return False
 
 
+async def wait_and_revert(deleted_fut, timeout):
+    await wait_for_delete(deleted_fut, timeout)
+    await edit_title(DEFAULT_TITLE)
+
+
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)programming (?:&|and) (.+)"), chats=CHANNEL_ID))
 async def on_name(event):
+    global revert_task
     new_topic = fix_title(event.pattern_match.group(1))
     new_title = f"Programming & {new_topic}"
     if "Tech" not in new_title:
@@ -63,9 +69,11 @@ async def on_name(event):
             func=lambda e: e.deleted_id == event.message.id
         ))
         if await wait_for_delete(asyncio.shield(deleted_fut), MULTI_EDIT_TIMEOUT):
+            await edit_title(DEFAULT_TITLE)
             await asyncio.sleep(MULTI_EDIT_TIMEOUT)
             return
-    if await wait_for_delete(deleted_fut, REVERT_TIMEOUT) or rename_lock.locked():
-        return
-    with (await rename_lock):
-        await edit_title(DEFAULT_TITLE)
+
+    if revert_task and not revert_task.done():
+        revert_task.cancel()
+
+    revert_task = asyncio.create_task(wait_and_revert(deleted_fut, REVERT_TIMEOUT))
