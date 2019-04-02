@@ -5,12 +5,12 @@ from telethon import events
 from telethon.tl.functions.channels import EditTitleRequest
 from telethon.errors.rpcerrorlist import ChatNotModifiedError
 
-MULTI_EDIT_TIMEOUT = 80
-REVERT_TIMEOUT = 2 * 60 * 60
-CHANNEL_ID = 1040270887
+MULTI_EDIT_TIMEOUT = 10 #80
+REVERT_TIMEOUT = 25 #2 * 60 * 60
+CHANNEL_ID = 1286178907 #1040270887
 DEFAULT_TITLE = "Programming & Tech"
 prog_tech_channel = None
-lock = asyncio.Lock()
+rename_lock = asyncio.Lock()
 
 
 def fix_title(s):
@@ -53,10 +53,10 @@ async def on_name(event):
     if "Tech" not in new_title:
         new_title += " & Tech"
 
-    if len(new_title) > 255 or lock.locked():
+    if len(new_title) > 255 or rename_lock.locked():
         return
 
-    with (await lock):
+    with (await rename_lock):
         await edit_title(new_title)
         deleted_fut = borg.await_event(events.MessageDeleted(
             chats=CHANNEL_ID,
@@ -65,7 +65,7 @@ async def on_name(event):
         if await wait_for_delete(asyncio.shield(deleted_fut), MULTI_EDIT_TIMEOUT):
             await asyncio.sleep(MULTI_EDIT_TIMEOUT)
             return
-    if await wait_for_delete(deleted_fut, REVERT_TIMEOUT) or lock.locked():
+    if await wait_for_delete(deleted_fut, REVERT_TIMEOUT) or rename_lock.locked():
         return
-    with (await lock):
+    with (await rename_lock):
         await edit_title(DEFAULT_TITLE)
