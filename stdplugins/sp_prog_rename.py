@@ -9,7 +9,6 @@ MULTI_EDIT_TIMEOUT = 80
 REVERT_TIMEOUT = 2 * 60 * 60
 CHANNEL_ID = 1040270887
 DEFAULT_TITLE = "Programming & Tech"
-prog_tech_channel = None
 rename_lock = asyncio.Lock()
 revert_task = None
 
@@ -25,12 +24,9 @@ def fix_title(s):
 
 
 async def edit_title(title):
-    global prog_tech_channel
-    if prog_tech_channel is None:
-        prog_tech_channel = await borg.get_entity(CHANNEL_ID)
     try:
         await borg(EditTitleRequest(
-            channel=prog_tech_channel, title=title
+            channel=CHANNEL_ID, title=title
         ))
     except ChatNotModifiedError:
         pass  # Everything is ok
