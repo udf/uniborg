@@ -36,15 +36,6 @@ async def edit_title(chat, title):
         pass  # Everything is ok
 
 
-async def wait_for_delete(deleted_fut, timeout):
-    try:
-        await asyncio.wait_for(deleted_fut, timeout)
-        return True
-    except asyncio.TimeoutError:
-        pass
-    return False
-
-
 async def wait_and_revert(chat_id, timeout):
     await asyncio.sleep(timeout)
     await edit_title(chat_id, DEFAULT_TITLES[chat_id])
