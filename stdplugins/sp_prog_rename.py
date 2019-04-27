@@ -1,5 +1,6 @@
 import asyncio
 import re
+import html
 
 from telethon import events
 from telethon.tl.functions.channels import EditTitleRequest
@@ -7,7 +8,7 @@ from telethon.errors.rpcerrorlist import ChatNotModifiedError
 
 MULTI_EDIT_TIMEOUT = 80
 REVERT_TIMEOUT = 2 * 60 * 60
-CHANNEL_ID = 1040270887
+CHANNEL_ID = 1286178907
 DEFAULT_TITLE = "Programming & Tech"
 rename_lock = asyncio.Lock()
 revert_task = None
@@ -57,6 +58,12 @@ async def on_name(event):
 
     if len(new_title) > 255 or rename_lock.locked():
         return
+
+    await event.respond(
+        f'<a href="tg://user?id={event.from_id}">{html.escape(event.sender.first_name)}</a>'
+        ' changed the group title!',
+        parse_mode='html'
+    )
 
     with (await rename_lock):
         await edit_title(new_title)
