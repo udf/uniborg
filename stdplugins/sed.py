@@ -103,7 +103,7 @@ async def on_regex(event):
     if m is not None:
         s = f"{HEADER}{s}"
         out = await borg.send_message(
-            await event.get_input_chat(), s, reply_to=m.id
+            await event.get_input_chat(), s, reply_to=m.id, parse_mode=None
         )
         last_msgs[chat_id].appendleft(out)
     elif s is not None:
