@@ -41,8 +41,8 @@ async def wait_for_delete(deleted_fut, timeout):
     return False
 
 
-async def wait_and_revert(deleted_fut, timeout):
-    await wait_for_delete(deleted_fut, timeout)
+async def wait_and_revert(timeout):
+    await asyncio.sleep(timeout)
     await edit_title(DEFAULT_TITLE)
 
 
@@ -60,16 +60,8 @@ async def on_name(event):
 
     with (await rename_lock):
         await edit_title(new_title)
-        deleted_fut = borg.await_event(events.MessageDeleted(
-            chats=CHANNEL_ID,
-            func=lambda e: e.deleted_id == event.message.id
-        ))
-        if await wait_for_delete(asyncio.shield(deleted_fut), MULTI_EDIT_TIMEOUT):
-            await edit_title(DEFAULT_TITLE)
-            await asyncio.sleep(MULTI_EDIT_TIMEOUT)
-            return
+        await asyncio.sleep(MULTI_EDIT_TIMEOUT)
 
     if revert_task and not revert_task.done():
         revert_task.cancel()
-
-    revert_task = asyncio.create_task(wait_and_revert(deleted_fut, REVERT_TIMEOUT))
+    revert_task = asyncio.create_task(wait_and_revert(REVERT_TIMEOUT))
