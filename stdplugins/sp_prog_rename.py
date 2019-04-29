@@ -9,7 +9,7 @@ from telethon.errors.rpcerrorlist import ChatNotModifiedError
 MULTI_EDIT_TIMEOUT = 80
 REVERT_TIMEOUT = 2 * 60 * 60
 DEFAULT_TITLES = {
-    1040270887: 'Programming & Tech',
+#    1040270887: 'Programming & Tech',
     1384391544: 'Programming & Tech for girls',
     1286178907: 'test supergroup'
 }
