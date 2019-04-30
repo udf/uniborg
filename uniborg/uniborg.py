@@ -82,9 +82,12 @@ class Uniborg(TelegramClient):
 
         plugin = self._plugins.pop(shortname)
         if callable(getattr(plugin, 'unload', None)):
-            unload = plugin.unload()
-            if inspect.isawaitable(unload):
-                await unload
+            try:
+                unload = plugin.unload()
+                if inspect.isawaitable(unload):
+                    await unload
+            except Exception:
+                self._logger.exception(f'Unhandled exception unloading {shortname}')
 
         del plugin
         self._logger.info(f"Removed plugin {shortname}")
