@@ -72,7 +72,7 @@ class Uniborg(TelegramClient):
         self._plugins[shortname] = mod
         self._logger.info(f"Successfully loaded plugin {shortname}")
 
-    def remove_plugin(self, shortname):
+    async def remove_plugin(self, shortname):
         name = self._plugins[shortname].__name__
 
         for i in reversed(range(len(self._event_builders))):
