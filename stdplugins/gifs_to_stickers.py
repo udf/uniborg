@@ -22,8 +22,10 @@ async def convert_sticker_to_gif(sticker):
     # remove alpha
     im = Image.open(file)
     alpha = im.convert('RGBA').getchannel('A')
-    new_im = Image.new('RGBA', im.size, (255, 255, 255, 255))
-    new_im.paste(im, mask=alpha)
+    size = max(im.width, im.height)
+    new_im = Image.new('RGBA', (size, size), (40, 40, 40, 255))
+    xy = (round((size - im.width) / 2), round((size - im.height) / 2))
+    new_im.paste(im, box=xy, mask=alpha)
     file = BytesIO()
     new_im.save(file, format='gif')
     file.seek(0)
