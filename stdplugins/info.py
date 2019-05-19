@@ -37,7 +37,7 @@ def yaml_format(obj, indent=0):
         has_multiple_items = len(items) > 2
         if has_multiple_items:
             result.append('\n')
-        indent += 2
+            indent += 2
         for k, v in items:
             if k == '_' or v is None:
                 continue
@@ -45,11 +45,14 @@ def yaml_format(obj, indent=0):
             if not formatted.strip():
                 continue
             result.append(' ' * (indent if has_multiple_items else 1))
-            result.append(f'{k}: {formatted}')
+            result.append(f'{k}:')
+            if not formatted[0].isspace():
+                result.append(' ')
+            result.append(f'{formatted}')
             result.append('\n')
         result.pop()
-        indent -= 2
-        result.append(' ' * indent)
+        if has_multiple_items:
+            indent -= 2
     elif isinstance(obj, str):
         # truncate long strings and display elipsis
         result = repr(obj[:STR_LEN_MAX])
@@ -75,7 +78,6 @@ def yaml_format(obj, indent=0):
             result.append('\n')
         result.pop()
         indent -= 2
-        result.append(' ' * indent)
     else:
         return repr(obj)
 
