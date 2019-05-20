@@ -14,6 +14,7 @@ async def _(event):
     else:
         msg = await event.message.get_reply_message()
         if msg.forward:
+          	# FIXME forward privacy memes
             who = await borg.get_entity(
                 msg.forward.from_id or msg.forward.channel_id)
         else:
@@ -21,7 +22,7 @@ async def _(event):
 
     who_string = utils.get_display_name(who)
     if isinstance(who, (types.User, types.Channel)) and who.username:
-        who_string += f" (@{who.username})"
-    who_string += f", [#{who.id}](tg://user?id={who.id})"
+        who_string += f" <i>(@{who.username})</i>"
+    who_string += f", <a href='tg://user?id={who.id}'>#{who.id}</a>"
 
-    await event.edit(who_string)
+    await event.edit(who_string, parse_mode='html')
