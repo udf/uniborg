@@ -92,6 +92,11 @@ async def _(event):
         await event.edit(yaml_text, parse_mode=parse_pre)
     except MessageTooLongError:
         await event.delete()
+        yaml_text = yaml_format(
+            msg,
+            max_str_len=9999,
+            max_byte_len=9999
+        )
         await borg.send_file(
             await event.get_input_chat(),
             f'<pre>{yaml_text}</pre>'.encode('utf-8'),
