@@ -4,8 +4,9 @@
 
 from telethon import events
 from telethon.utils import add_surrogate
-from telethon.tl.types import MessageEntityPre
+from telethon.tl.types import MessageEntityPre, DocumentAttributeFilename
 from telethon.tl.tlobject import TLObject
+from telethon.errors import MessageTooLongError
 import datetime
 
 STR_LEN_MAX = 256
@@ -91,4 +92,16 @@ async def _(event):
         return
     msg = await event.message.get_reply_message()
     yaml_text = yaml_format(msg)
-    await event.edit(yaml_text, parse_mode=parse_pre)
+    try:
+        await event.edit(yaml_text, parse_mode=parse_pre)
+    except MessageTooLongError:
+        await event.delete()
+        await borg.send_file(
+            await event.get_input_chat(),
+            f'<pre>{yaml_text}</pre>'.encode('utf-8'),
+            reply_to=msg,
+            attributes=[
+                DocumentAttributeFilename('info.html')
+            ],
+            allow_cache=False
+        )
