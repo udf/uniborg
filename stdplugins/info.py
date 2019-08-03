@@ -9,9 +9,6 @@ from telethon.tl.tlobject import TLObject
 from telethon.errors import MessageTooLongError
 import datetime
 
-STR_LEN_MAX = 256
-BYTE_LEN_MAX = 64
-
 
 def parse_pre(text):
     text = text.strip()
@@ -21,7 +18,7 @@ def parse_pre(text):
     )
 
 
-def yaml_format(obj, indent=0):
+def yaml_format(obj, indent=0, max_str_len=256, max_byte_len=64):
     """
     Pretty formats the given object as a YAML string which is returned.
     (based on TLObject.pretty_format)
@@ -56,8 +53,8 @@ def yaml_format(obj, indent=0):
             indent -= 2
     elif isinstance(obj, str):
         # truncate long strings and display elipsis
-        result = repr(obj[:STR_LEN_MAX])
-        if len(obj) > STR_LEN_MAX:
+        result = repr(obj[:max_str_len])
+        if len(obj) > max_str_len:
             result += '…'
         return result
     elif isinstance(obj, bytes):
@@ -65,7 +62,7 @@ def yaml_format(obj, indent=0):
         if all(0x20 <= c < 0x7f for c in obj):
             return repr(obj)
         else:
-            return ('<…>' if len(obj) > BYTE_LEN_MAX else
+            return ('<…>' if len(obj) > max_byte_len else
                     ' '.join(f'{b:02X}' for b in obj))
     elif isinstance(obj, datetime.datetime):
         # ISO-8601 without timezone offset (telethon dates are always UTC)
@@ -75,7 +72,6 @@ def yaml_format(obj, indent=0):
         result.append('\n')
         indent += 2
         for x in obj:
-
             result.append(f"{' ' * indent}- {yaml_format(x, indent + 2)}")
             result.append('\n')
         result.pop()
