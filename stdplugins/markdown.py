@@ -61,7 +61,7 @@ def parse_snip(m):
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
     (DEFAULT_URL_RE, parse_url_match),
-    (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
+    (re.compile(r'!\+(.+?)\+!'), parse_aesthetics),
     (re.compile(r'~~(.+?)~~'), parse_strikethrough),
     (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
