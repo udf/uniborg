@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import html
 
 from telethon import events
 from telethon import utils
@@ -20,7 +21,7 @@ async def _(event):
         else:
             who = await msg.get_sender()
 
-    who_string = utils.get_display_name(who)
+    who_string = html.escape(utils.get_display_name(who))
     if isinstance(who, (types.User, types.Channel)) and who.username:
         who_string += f" <i>(@{who.username})</i>"
     who_string += f", <a href='tg://user?id={who.id}'>#{who.id}</a>"
