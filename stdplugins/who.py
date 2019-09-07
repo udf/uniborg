@@ -34,8 +34,19 @@ async def _(event):
 
 @borg.on(events.NewMessage(pattern=r"\.members", outgoing=True))
 async def _(event):
-    members = [
-        get_who_string(m) async for m in borg.iter_participants(event.chat_id)
-    ]
+    members = []
+    async for member in borg.iter_participants(event.chat_id):
+        messages = await borg.get_messages(
+            event.chat_id,
+            from_user=member,
+            limit=0
+        )
+        members.append((
+            messages.total,
+            f"{messages.total} - {get_who_string(member)}"
+        ))
+    members = (
+        m[1] for m in sorted(members, key=lambda m: m[0], reverse=True)
+    )
 
     await event.edit("\n".join(members), parse_mode='html')
