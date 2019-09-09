@@ -16,7 +16,7 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'\.snip (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'(?:\.snip +|!)(\w+)$', outgoing=True))
 async def on_snip(event):
     loop.create_task(event.delete())
     name = event.pattern_match.group(1)

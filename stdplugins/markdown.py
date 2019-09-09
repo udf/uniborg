@@ -47,6 +47,10 @@ def parse_strikethrough(m):
     return ("\u0336".join(m[1]) + "\u0336"), None
 
 
+def parse_enclosing_circle(m):
+    return ("\u20e0".join(m[1]) + "\u20e0"), None
+
+
 def parse_subreddit(m):
     text = '/' + m.group(3)
     entity = MessageEntityTextUrl(
@@ -82,6 +86,7 @@ MATCHERS = [
     (get_tag_parser('`', MessageEntityCode)),
     (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
     (re.compile(r'~~(.+?)~~'), parse_strikethrough),
+    (re.compile(r'@@(.+?)@@'), parse_enclosing_circle),
     (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]

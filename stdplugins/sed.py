@@ -5,6 +5,8 @@ import regex
 from telethon import events, utils
 from telethon.tl import types, functions
 
+from uniborg import util
+
 HEADER = "「sed」\n"
 KNOWN_RE_BOTS = re.compile(
     r'(regex|moku|BananaButler_|rgx|l4mR)bot',
@@ -17,6 +19,7 @@ KNOWN_RE_BOTS = re.compile(
 last_msgs = defaultdict(lambda: deque(maxlen=10))
 
 
+@util.sync_timeout(1)
 def doit(chat_id, match, original):
     fr = match.group(1)
     to = match.group(2)
@@ -100,7 +103,7 @@ async def on_regex(event):
     if m is not None:
         s = f"{HEADER}{s}"
         out = await borg.send_message(
-            await event.get_input_chat(), s, reply_to=m.id
+            await event.get_input_chat(), s, reply_to=m.id, parse_mode=None
         )
         last_msgs[chat_id].appendleft(out)
     elif s is not None:
