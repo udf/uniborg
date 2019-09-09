@@ -17,7 +17,7 @@ async def load_reload(event):
 
     try:
         if shortname in borg._plugins:
-            borg.remove_plugin(shortname)
+            await borg.remove_plugin(shortname)
         borg.load_plugin(shortname)
 
         msg = await event.respond(
@@ -39,7 +39,7 @@ async def remove(event):
     if shortname == "_core":
         msg = await event.respond(f"Not removing {shortname}")
     elif shortname in borg._plugins:
-        borg.remove_plugin(shortname)
+        await borg.remove_plugin(shortname)
         msg = await event.respond(f"Removed plugin {shortname}")
     else:
         msg = await event.respond(f"Plugin {shortname} is not loaded")

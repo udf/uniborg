@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import functools
 import re
+import signal
 
 from telethon import events
 from telethon.tl.functions.messages import GetPeerDialogsRequest
@@ -35,3 +37,20 @@ async def get_recent_self_message(borg, event):
             await event.get_input_chat(), limit=20):
         if message.out:
             return message
+
+def _handle_timeout(signum, frame):
+    raise TimeoutError("Execution took too long")
+
+def sync_timeout(seconds):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.setitimer(signal.ITIMER_REAL, seconds)
+            try:
+                r = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return r
+        return wrapper
+    return decorator

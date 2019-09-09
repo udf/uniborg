@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import asyncio
 import importlib.util
+import inspect
 import logging
 from pathlib import Path
 
@@ -71,7 +72,7 @@ class Uniborg(TelegramClient):
         self._plugins[shortname] = mod
         self._logger.info(f"Successfully loaded plugin {shortname}")
 
-    def remove_plugin(self, shortname):
+    async def remove_plugin(self, shortname):
         name = self._plugins[shortname].__name__
 
         for i in reversed(range(len(self._event_builders))):
@@ -79,7 +80,16 @@ class Uniborg(TelegramClient):
             if cb.__module__ == name:
                 del self._event_builders[i]
 
-        del self._plugins[shortname]
+        plugin = self._plugins.pop(shortname)
+        if callable(getattr(plugin, 'unload', None)):
+            try:
+                unload = plugin.unload()
+                if inspect.isawaitable(unload):
+                    await unload
+            except Exception:
+                self._logger.exception(f'Unhandled exception unloading {shortname}')
+
+        del plugin
         self._logger.info(f"Removed plugin {shortname}")
 
     def await_event(self, event_matcher, filter=None):
