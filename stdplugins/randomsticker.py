@@ -21,7 +21,7 @@ def choser(cmd, pack, blacklist={}):
                 if x.id not in blacklist
             ]
 
-        await event.respond(file=random.choice(docs))
+        await event.respond(file=random.choice(docs), reply_to=event.reply_to_msg_id)
 
 
 choser('brain', 'supermind')
