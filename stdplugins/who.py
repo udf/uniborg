@@ -5,19 +5,22 @@ import html
 
 from telethon import events
 from telethon import utils
-from telethon.tl import types
+from telethon.tl import types, functions
 
 
-def get_who_string(who):
+def get_who_string(who, rank=None):
     who_string = html.escape(utils.get_display_name(who))
     if isinstance(who, (types.User, types.Channel)) and who.username:
         who_string += f" <i>(@{who.username})</i>"
+    if rank is not None:
+        who_string += f' <i>"{html.escape(rank)}"</i>'
     who_string += f", <a href='tg://user?id={who.id}'>#{who.id}</a>"
     return who_string
 
 
 @borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
 async def _(event):
+    rank = None
     if not event.message.is_reply:
         who = await event.get_chat()
     else:
@@ -28,8 +31,12 @@ async def _(event):
                 msg.forward.from_id or msg.forward.channel_id)
         else:
             who = await msg.get_sender()
+            rank = getattr((await borg(functions.channels.GetParticipantRequest(
+                await event.get_input_chat(),
+                who
+            ))).participant, 'rank', None)
 
-    await event.edit(get_who_string(who), parse_mode='html')
+    await event.edit(get_who_string(who, rank), parse_mode='html')
 
 
 @borg.on(events.NewMessage(pattern=r"\.members", outgoing=True))
