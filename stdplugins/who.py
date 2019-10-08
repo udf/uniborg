@@ -10,10 +10,10 @@ from telethon.tl import types, functions
 
 def get_who_string(who, rank=None):
     who_string = html.escape(utils.get_display_name(who))
-    if isinstance(who, (types.User, types.Channel)) and who.username:
-        who_string += f" <i>(@{who.username})</i>"
     if rank is not None:
         who_string += f' <i>"{html.escape(rank)}"</i>'
+    if isinstance(who, (types.User, types.Channel)) and who.username:
+        who_string += f" <i>(@{who.username})</i>"
     who_string += f", <a href='tg://user?id={who.id}'>#{who.id}</a>"
     return who_string
 
@@ -31,10 +31,12 @@ async def _(event):
                 msg.forward.from_id or msg.forward.channel_id)
         else:
             who = await msg.get_sender()
-            rank = getattr((await borg(functions.channels.GetParticipantRequest(
-                await event.get_input_chat(),
-                who
-            ))).participant, 'rank', None)
+            ic = await event.get_input_chat()
+            if isinstance(ic, types.InputPeerChannel):
+                rank = getattr((await borg(functions.channels.GetParticipantRequest(
+                    ic,
+                    who
+                ))).participant, 'rank', None)
 
     await event.edit(get_who_string(who, rank), parse_mode='html')
 
