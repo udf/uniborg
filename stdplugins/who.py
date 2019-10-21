@@ -70,3 +70,24 @@ async def _(event):
     )
 
     await event.edit("\n".join(members), parse_mode='html')
+
+
+@borg.on(events.NewMessage(pattern=r"\.active_members", outgoing=True))
+async def _(event):
+    members = []
+    async for member in borg.iter_participants(event.chat_id):
+        messages = await borg.get_messages(
+            event.chat_id,
+            from_user=member,
+            limit=1
+        )
+        date = messages[0].date
+        members.append((
+            date,
+            f"{date:%Y-%m-%d} - {get_who_string(member)}"
+        ))
+    members = (
+        m[1] for m in sorted(members, key=lambda m: m[0], reverse=True)
+    )
+
+    await event.edit("\n".join(members), parse_mode='html')
