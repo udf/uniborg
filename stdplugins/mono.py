@@ -8,6 +8,9 @@ from telethon import events
 
 group_id = 1146038279
 user_id = 967435117
+greetings = [
+    'Hi', 'Hey', 'Hello', 'Sup', 'Yo'
+]
 sexy_things = [
     'TikTok', 'sex', 'hot sex', 'Alina', 'Eliza', 'Hebe', 'pedo', 'loli'
 ]
@@ -25,7 +28,7 @@ async def _(e):
     try:
         e = await asyncio.wait_for(fut, timeout=60 * 10)
         await asyncio.sleep(randint(30, 90))
-        m = await e.reply(f'Hey Mono, want some {choice(sexy_things)}?')
+        m = await e.reply(f'{choice(greetings)} Mono, want some {choice(sexy_things)}?')
         await borg.send_message(
             151462131,
             f'https://t.me/c/{group_id}/{m.id}'
