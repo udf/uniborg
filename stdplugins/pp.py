@@ -40,7 +40,7 @@ def crop_pp(im):
 
 async def do_thing():
     while 1:
-        await asyncio.sleep(30)
+        await asyncio.sleep(1)
 
         elapsed = time.time() - start_time
         frame = min(floor(elapsed / frame_time), len(files) - 1)
