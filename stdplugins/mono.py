@@ -7,7 +7,7 @@ from random import choice, randint
 from telethon import events
 
 group_id = 1146038279
-user_id = 967435117
+user_id = 998826987
 greetings = [
     'Hi', 'Hey', 'Hello', 'Sup', 'Yo'
 ]
