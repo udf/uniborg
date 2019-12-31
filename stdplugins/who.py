@@ -1,6 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+import datetime
 import html
 import time
 
@@ -81,7 +83,8 @@ async def _(event):
             from_user=member,
             limit=1
         )
-        date = messages[0].date
+        date = (messages[0].date if messages
+            else datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc))
         members.append((
             date,
             f"{date:%Y-%m-%d} - {get_who_string(member)}"
