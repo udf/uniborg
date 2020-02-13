@@ -25,10 +25,7 @@ async def _(event):
         reply = cache.get(message, -1)
         if reply == -1:
             reply = None
-            async for m in borg.iter_messages(
-                event.chat_id,
-                ids=message
-            ):
+            if m := await borg.get_messages(event.chat_id, ids=message):
                 reply = m.reply_to_msg_id
                 cache[message] = reply
                 if len(cache) % 10 == 0:
