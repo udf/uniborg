@@ -1,3 +1,6 @@
+"""
+Become @regexbot when the bot is missing
+"""
 from collections import defaultdict, deque
 import re
 
