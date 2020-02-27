@@ -12,7 +12,7 @@ from uniborg import util
 
 HEADER = "「sed」\n"
 KNOWN_RE_BOTS = re.compile(
-    r'(regex|moku|BananaButler_|rgx|l4mR)bot',
+    r'(regex|moku|ou|BananaButler_|rgx|l4mR)bot',
     flags=re.IGNORECASE
 )
 
