@@ -97,9 +97,11 @@ async def on_edit(event):
 async def on_regex(event):
     if event.fwd_from:
         return
-    if not event.is_private and\
-            await group_has_sedbot(await event.get_input_chat()):
-        return
+    if not event.is_private:
+        if not event.out:
+            return
+        if await group_has_sedbot(await event.get_input_chat()):
+            return
 
     chat_id = utils.get_peer_id(await event.get_input_chat())
 
