@@ -19,7 +19,7 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'(?:\.snip +|!)(\w+)$', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'(?:\.snip\s+|!)(\S+)$', outgoing=True))
 async def on_snip(event):
     loop.create_task(event.delete())
     name = event.pattern_match.group(1)
@@ -39,7 +39,7 @@ async def on_snip(event):
                             reply_to=event.message.reply_to_msg_id)
 
 
-@borg.on(events.NewMessage(pattern=r'\.snips (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snips\s+(\S+)', outgoing=True))
 async def on_snip_save(event):
     loop.create_task(event.delete())
     name = event.pattern_match.group(1)
