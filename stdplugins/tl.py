@@ -6,10 +6,11 @@ Translates stuff into English
 """
 import aiohttp
 import asyncio
+import math
 import re
 import time
 
-from telethon import events
+from telethon import events, helpers
 
 
 class Translator:
@@ -39,6 +40,12 @@ class Translator:
         """
         Original code by ultrafunkamsterdam/googletranslate:
         https://github.com/ultrafunkamsterdam/googletranslate/blob/bd3f4d0a1386ffa634c8ebbebb3603279f3ece99/googletranslate/__init__.py#L263
+
+        If this ever breaks, the way it was found was in one of the top-100
+        longest lines of `translate_m.js` used by translate.google.com, it
+        uses a single-line with all these "magic" values and one can look
+        around there and use a debugger to figure out how it works. It's
+        a very straight-forward port.
         """
         def xor_rot(a, b):
             size_b = len(b)
@@ -52,6 +59,7 @@ class Translator:
             return a
 
         a = []
+        text = helpers.add_surrogate(text)
         for i in text:
             val = ord(i)
             if val < 0x10000:
