@@ -96,6 +96,9 @@ MATCHERS = [
 
 
 def parse(message, old_entities=None):
+    if not message:
+        return message
+
     entities = []
     old_entities = sorted(old_entities or [], key=lambda e: e.offset)
 
