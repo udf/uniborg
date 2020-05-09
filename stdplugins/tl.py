@@ -6,17 +6,23 @@ Translates stuff into English
 """
 import aiohttp
 import asyncio
+import io
 import math
+import mimetypes
 import re
 import time
 
-from telethon import events, helpers
+from telethon import events, helpers, types
+
+
+mimetypes.add_type('audio/mpeg', '.borg+tts')
 
 
 class Translator:
     _TKK_RE = re.compile(r"tkk:'(\d+)\.(\d+)'", re.DOTALL)
     _BASE_URL = 'https://translate.google.com'
     _TRANSLATE_URL = 'https://translate.google.com/translate_a/single'
+    _TRANSLATE_TTS_URL = 'https://translate.google.com/translate_tts'
     _HEADERS = {
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:75.0) Gecko/20100101 Firefox/75.0'
     }
@@ -132,6 +138,29 @@ class Translator:
             data = await resp.json()
             return ''.join(part[0] for part in data[0] if part[0] is not None)
 
+    async def tts(self, text, target=None):
+        if self._need_refresh_tkk():
+            async with self._tkk_lock:
+                self._tkk = await self._fetch_tkk()
+
+        params = [
+            ('ie', 'UTF-8'),
+            ('q', text),
+            ('tl', target or self._target),
+            ('total', 1),
+            ('idx', 0),
+            ('textlen', len(helpers.add_surrogate(text))),
+            ('tk', self._calc_token(text)),
+            ('client', 'webapp'),
+            ('prev', 'input'),
+        ]
+
+        async with self._session.get(self._TRANSLATE_TTS_URL, params=params) as resp:
+            if resp.status == 404:
+                raise ValueError('unknown target language')
+            else:
+                return await resp.read()
+
     async def close(self):
         await self._session.close()
 
@@ -160,6 +189,32 @@ async def _(event):
 
     translated = await translator.translate(text.strip())
     await event.edit('translation: ' + translated, parse_mode=None)
+
+
+@borg.on(events.NewMessage(pattern=r"\.tts", outgoing=True))
+async def _(event):
+    await event.delete()
+
+    if event.is_reply:
+        text = (await event.get_reply_message()).raw_text
+    else:
+        ts = event.raw_text.split(maxsplit=1)
+        text = None if len(ts) < 2 else ts[1]
+
+    if not text:
+        return
+
+    file = io.BytesIO(await translator.tts(text))
+    file.name = 'a.borg+tts'
+    await borg.send_file(
+        event.chat_id,
+        file,
+        reply_to=event.reply_to_msg_id,
+        attributes=[types.DocumentAttributeAudio(
+            duration=0,
+            voice=True
+        )]
+    )
 
 
 async def unload():
