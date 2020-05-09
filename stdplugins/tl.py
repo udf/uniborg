@@ -195,11 +195,11 @@ async def _(event):
 async def _(event):
     await event.delete()
 
-    if event.is_reply:
+    ts = event.raw_text.split(maxsplit=1)
+    text = None if len(ts) < 2 else ts[1]
+
+    if not text and event.is_reply:
         text = (await event.get_reply_message()).raw_text
-    else:
-        ts = event.raw_text.split(maxsplit=1)
-        text = None if len(ts) < 2 else ts[1]
 
     if not text:
         return
