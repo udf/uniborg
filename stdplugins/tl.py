@@ -18,6 +18,28 @@ from telethon import events, helpers, types
 mimetypes.add_type('audio/mpeg', '.borg+tts')
 
 
+def split_text(text, n=40):
+    words = text.split()
+    while len(words) > n:
+        comma = None
+        semicolon = None
+        for i in reversed(range(n)):
+            if words[i].endswith('.'):
+                yield ' '.join(words[:i + 1])
+                words = words[i + 1:]
+                break
+            elif not semicolon and words[i].endswith(';'):
+                semicolon = i + 1
+            elif not comma and words[i].endswith(','):
+                comma = i + 1
+        else:
+            cut = semicolon or comma or n
+            yield ' '.join(words[:cut])
+            words = words[cut:]
+    if words:
+        yield ' '.join(words)
+
+
 class Translator:
     _TKK_RE = re.compile(r"tkk:'(\d+)\.(\d+)'", re.DOTALL)
     _BASE_URL = 'https://translate.google.com'
@@ -143,23 +165,28 @@ class Translator:
             async with self._tkk_lock:
                 self._tkk = await self._fetch_tkk()
 
-        params = [
-            ('ie', 'UTF-8'),
-            ('q', text),
-            ('tl', target or self._target),
-            ('total', 1),
-            ('idx', 0),
-            ('textlen', len(helpers.add_surrogate(text))),
-            ('tk', self._calc_token(text)),
-            ('client', 'webapp'),
-            ('prev', 'input'),
-        ]
+        parts = list(split_text(text))
+        result = b''
+        for i, part in enumerate(parts):
+            params = [
+                ('ie', 'UTF-8'),
+                ('q', part),
+                ('tl', target or self._target),
+                ('total', len(parts)),
+                ('idx', i),
+                ('textlen', len(helpers.add_surrogate(part))),
+                ('tk', self._calc_token(part)),
+                ('client', 'webapp'),
+                ('prev', 'input'),
+            ]
 
-        async with self._session.get(self._TRANSLATE_TTS_URL, params=params) as resp:
-            if resp.status == 404:
-                raise ValueError('unknown target language')
-            else:
-                return await resp.read()
+            async with self._session.get(self._TRANSLATE_TTS_URL, params=params) as resp:
+                if resp.status == 404:
+                    raise ValueError('unknown target language')
+                else:
+                    result += await resp.read()
+
+        return result
 
     async def close(self):
         await self._session.close()
