@@ -12,7 +12,7 @@ import mimetypes
 import re
 import time
 
-from telethon import events, helpers, types
+from telethon import helpers, types
 
 
 mimetypes.add_type('audio/mpeg', '.borg+tts')
@@ -308,11 +308,11 @@ class Translator:
 translator = Translator()
 
 
-@borg.on(events.NewMessage(pattern=r"\.tl", outgoing=True))
+@borg.on(borg.cmd(r"tl"))
 async def _(event):
     if event.is_reply:
         text = (await event.get_reply_message()).raw_text
-    else:
+    elif not borg.me.bot:
         text = ''
         started = False
         async for m in borg.iter_messages(event.chat_id):
@@ -326,14 +326,18 @@ async def _(event):
                 text = m.raw_text + '\n' + text
             else:
                 text = m.raw_text + ' ' + text
+    else:
+        return
 
     translated = await translator.translate(text.strip())
-    await event.edit('translation: ' + translated, parse_mode=None)
+    action = event.edit if not borg.me.bot else event.respond
+    await action('translation: ' + translated, parse_mode=None)
 
 
-@borg.on(events.NewMessage(pattern=r"\.tts", outgoing=True))
+@borg.on(borg.cmd(r"tts"))
 async def _(event):
-    await event.delete()
+    if not borg.me.bot:
+        await event.delete()
 
     ts = event.raw_text.split(maxsplit=1)
     text = None if len(ts) < 2 else ts[1]
@@ -349,7 +353,7 @@ async def _(event):
     await borg.send_file(
         event.chat_id,
         file,
-        reply_to=event.reply_to_msg_id,
+        reply_to=event.reply_to_msg_id if not borg.me.bot else None,
         attributes=[types.DocumentAttributeAudio(
             duration=0,
             voice=True

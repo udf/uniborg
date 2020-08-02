@@ -110,6 +110,17 @@ class Uniborg(TelegramClient):
 
         return fut
 
+    def cmd(self, pattern):
+        if not self.me.bot:
+            return telethon.events.NewMessage(
+                outgoing=True,
+                pattern=fr'^\.{pattern}$'
+            )
+        else:
+            return telethon.events.NewMessage(
+                pattern=fr'^\/{pattern}$'
+            )
+
     def admin_cmd(self, pattern):
         if not self.me.bot:
             return telethon.events.NewMessage(
