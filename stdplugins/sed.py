@@ -12,9 +12,9 @@ from uniborg import util
 
 SED_PATTERN = r'^s/((?:\\/|[^/])+)/((?:\\/|[^/])*)(/.*)?'
 GROUP0_RE = re.compile(r'(?<!\\)((?:\\\\)*)\\0')
-HEADER = '「sed」\n'
+HEADER = '' if borg.me.bot else '「sed」\n'
 KNOWN_RE_BOTS = re.compile(
-    r'(regex|moku|ou|BananaButler_|rgx|l4mR)bot',
+    r'(regex|moku|ou|BananaButler_|rgx|l4mR|ProgrammingAndGirls)bot',
     flags=re.IGNORECASE
 )
 
@@ -107,7 +107,7 @@ async def group_has_sedbot(group):
 async def sed(event):
     if event.fwd_from:
         return
-    if not event.is_private:
+    if not (borg.me.bot or event.is_private):
         if not event.out:
             return
         if await group_has_sedbot(await event.get_input_chat()):
