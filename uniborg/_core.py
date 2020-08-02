@@ -5,14 +5,13 @@
 import asyncio
 import traceback
 
-from uniborg import util
-
 DELETE_TIMEOUT = 2
 
 
-@borg.on(util.admin_cmd(r"^\.(?:re)?load (?P<shortname>\w+)$"))
+@borg.on(borg.admin_cmd(r"(?:re)?load (?P<shortname>\w+)"))
 async def load_reload(event):
-    await event.delete()
+    if not borg.me.bot:
+        await event.delete()
     shortname = event.pattern_match["shortname"]
 
     try:
@@ -22,8 +21,9 @@ async def load_reload(event):
 
         msg = await event.respond(
             f"Successfully (re)loaded plugin {shortname}")
-        await asyncio.sleep(DELETE_TIMEOUT)
-        await borg.delete_messages(msg.to_id, msg)
+        if not borg.me.bot:
+            await asyncio.sleep(DELETE_TIMEOUT)
+            await borg.delete_messages(msg.to_id, msg)
 
     except Exception as e:
         tb = traceback.format_exc()
@@ -31,9 +31,10 @@ async def load_reload(event):
         await event.respond(f"Failed to (re)load plugin {shortname}: {e}")
 
 
-@borg.on(util.admin_cmd(r"^\.(?:unload|disable|remove) (?P<shortname>\w+)$"))
+@borg.on(borg.admin_cmd(r"(?:unload|disable|remove) (?P<shortname>\w+)"))
 async def remove(event):
-    await event.delete()
+    if not borg.me.bot:
+        await event.delete()
     shortname = event.pattern_match["shortname"]
 
     if shortname == "_core":
@@ -44,5 +45,6 @@ async def remove(event):
     else:
         msg = await event.respond(f"Plugin {shortname} is not loaded")
 
-    await asyncio.sleep(DELETE_TIMEOUT)
-    await borg.delete_messages(msg.to_id, msg)
+    if not borg.me.bot:
+        await asyncio.sleep(DELETE_TIMEOUT)
+        await borg.delete_messages(msg.to_id, msg)

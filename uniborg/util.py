@@ -10,10 +10,6 @@ from telethon import events
 from telethon.tl.functions.messages import GetPeerDialogsRequest
 
 
-def admin_cmd(pattern):
-    return events.NewMessage(outgoing=True, pattern=re.compile(pattern))
-
-
 async def is_read(borg, entity, message, is_out=None):
     """
     Returns True if the given message (or id) has been read

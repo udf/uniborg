@@ -17,7 +17,7 @@ from . import hacks
 
 class Uniborg(TelegramClient):
     def __init__(
-            self, session, *, plugin_path="plugins", storage=None,
+            self, session, *, plugin_path="plugins", storage=None, admins=[],
             bot_token=None, **kwargs):
         # TODO: handle non-string session
         #
@@ -28,6 +28,7 @@ class Uniborg(TelegramClient):
         self._logger = logging.getLogger(session)
         self._plugins = {}
         self._plugin_path = plugin_path
+        self.admins = admins
 
         kwargs = {
             "api_id": 6, "api_hash": "eb06d4abfb49dc3eeb1aeb98ae0f581e",
@@ -108,3 +109,15 @@ class Uniborg(TelegramClient):
             lambda _: self.remove_event_handler(cb, event_matcher))
 
         return fut
+
+    def admin_cmd(self, pattern):
+        if not self.me.bot:
+            return telethon.events.NewMessage(
+                outgoing=True,
+                pattern=fr'^\.{pattern}$'
+            )
+        else:
+            return telethon.events.NewMessage(
+                from_users=self.admins,
+                pattern=fr'^\/{pattern}$'
+            )
