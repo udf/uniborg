@@ -110,25 +110,31 @@ class Uniborg(TelegramClient):
 
         return fut
 
-    def cmd(self, pattern):
-        if not self.me.bot:
-            return telethon.events.NewMessage(
-                outgoing=True,
-                pattern=fr'^\.{pattern}$'
-            )
-        else:
-            return telethon.events.NewMessage(
-                pattern=fr'^\/{pattern}$'
-            )
+    def cmd(self, command, pattern=None, admin_only=False):
+        if self.me.bot:
+            command = fr'{command}(?:@{self.me.username})?'
 
-    def admin_cmd(self, pattern):
-        if not self.me.bot:
-            return telethon.events.NewMessage(
-                outgoing=True,
-                pattern=fr'^\.{pattern}$'
-            )
+        if pattern is not None:
+            pattern = fr'{command}\s+{pattern}'
         else:
-            return telethon.events.NewMessage(
-                from_users=self.admins,
-                pattern=fr'^\/{pattern}$'
-            )
+            pattern = command
+
+        if not self.me.bot:
+            pattern=fr'^\.{pattern}'
+        else:
+            pattern=fr'^\/{pattern}'
+        pattern=fr'(?i){pattern}$'
+
+        if self.me.bot and admin_only:
+            allowed_users = self.admins
+        else:
+            allowed_users = None
+
+        return telethon.events.NewMessage(
+            outgoing=not self.me.bot,
+            from_users=allowed_users,
+            pattern=pattern
+        )
+
+    def admin_cmd(self, command, pattern=None):
+        return self.cmd(command, pattern, admin_only=True)
