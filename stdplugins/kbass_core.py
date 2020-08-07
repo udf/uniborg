@@ -19,7 +19,7 @@ async def get_target_message(borg, event):
 
 def self_reply_cmd(borg, pattern):
     def wrapper(function):
-        @borg.on(util.admin_cmd(pattern))
+        @borg.on(borg.admin_cmd(pattern))
         async def wrapped(event, *args, **kwargs):
             await event.delete()
             target = await get_target_message(borg, event)
@@ -32,7 +32,7 @@ def self_reply_cmd(borg, pattern):
 
 def self_reply_selector(borg, cmd):
     def wrapper(function):
-        @borg.on(util.admin_cmd(cmd + r"( [+-]?\d+)?$"))
+        @borg.on(borg.admin_cmd(cmd + r"( [+-]?\d+)?$"))
         async def wrapped(event, *args, **kwargs):
             await event.delete()
             reply = await event.get_reply_message()
