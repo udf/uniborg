@@ -10,11 +10,11 @@ import api_key
 logging.basicConfig(level=logging.INFO)
 
 borg = Uniborg(
-        "stdborg",
-        plugin_path="stdplugins",
-        connection_retries=None,
-        api_id=api_key.id,
-        api_hash=api_key.hash
+    "stdborg",
+    plugin_path="stdplugins",
+    connection_retries=None,
+    api_id=api_key.id,
+    api_hash=api_key.hash
 )
 
 borg.run_until_disconnected()
