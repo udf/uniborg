@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+"""
+Send a random .brain or .dab sticker
+"""
 import random
 
 from telethon import events, types, functions, utils
@@ -21,7 +23,7 @@ def choser(cmd, pack, blacklist={}):
                 if x.id not in blacklist
             ]
 
-        await event.respond(file=random.choice(docs))
+        await event.respond(file=random.choice(docs), reply_to=event.reply_to_msg_id)
 
 
 choser('brain', 'supermind')
@@ -40,4 +42,8 @@ choser('dab', 'DabOnHaters', {
     1653974154589767863,
     1653974154589767852,
     1653974154589768677
+})
+choser('fp', 'facepalmstickers', {
+    285892071401720411,
+    285892071401725809
 })

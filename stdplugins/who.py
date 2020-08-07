@@ -1,15 +1,22 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""
+Show information about the chat or replied user
+"""
+import datetime
 import html
+import time
 
 from telethon import events
 from telethon import utils
-from telethon.tl import types
+from telethon.tl import types, functions
 
 
-def get_who_string(who):
+def get_who_string(who, rank=None):
     who_string = html.escape(utils.get_display_name(who))
+    if rank is not None:
+        who_string += f' <i>"{html.escape(rank)}"</i>'
     if isinstance(who, (types.User, types.Channel)) and who.username:
         who_string += f" <i>(@{who.username})</i>"
     who_string += f", <a href='tg://user?id={who.id}'>#{who.id}</a>"
@@ -18,6 +25,7 @@ def get_who_string(who):
 
 @borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
 async def _(event):
+    rank = None
     if not event.message.is_reply:
         who = await event.get_chat()
     else:
@@ -28,14 +36,30 @@ async def _(event):
                 msg.forward.from_id or msg.forward.channel_id)
         else:
             who = await msg.get_sender()
+            ic = await event.get_input_chat()
+            if isinstance(ic, types.InputPeerChannel):
+                rank = getattr((await borg(functions.channels.GetParticipantRequest(
+                    ic,
+                    who
+                ))).participant, 'rank', None)
 
-    await event.edit(get_who_string(who), parse_mode='html')
+    await event.edit(get_who_string(who, rank), parse_mode='html')
 
 
 @borg.on(events.NewMessage(pattern=r"\.members", outgoing=True))
 async def _(event):
+    last = 0
+    index = 0
     members = []
-    async for member in borg.iter_participants(event.chat_id):
+
+    it = borg.iter_participants(event.chat_id)
+    async for member in it:
+        index += 1
+        now = time.time()
+        if now - last > 0.5:
+            last = now
+            await event.edit(f'counting member stats ({index / it.total:.2%})…')
+
         messages = await borg.get_messages(
             event.chat_id,
             from_user=member,
@@ -44,6 +68,28 @@ async def _(event):
         members.append((
             messages.total,
             f"{messages.total} - {get_who_string(member)}"
+        ))
+    members = (
+        m[1] for m in sorted(members, key=lambda m: m[0], reverse=True)
+    )
+
+    await event.edit("\n".join(members), parse_mode='html')
+
+
+@borg.on(events.NewMessage(pattern=r"\.active_members", outgoing=True))
+async def _(event):
+    members = []
+    async for member in borg.iter_participants(event.chat_id):
+        messages = await borg.get_messages(
+            event.chat_id,
+            from_user=member,
+            limit=1
+        )
+        date = (messages[0].date if messages
+            else datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc))
+        members.append((
+            date,
+            f"{date:%Y-%m-%d} - {get_who_string(member)}"
         ))
     members = (
         m[1] for m in sorted(members, key=lambda m: m[0], reverse=True)

@@ -1,6 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""
+.snips-ave snips and send them with .snip name
+"""
 import asyncio
 from telethon import events, utils
 from telethon.tl import types
@@ -16,7 +19,7 @@ TYPE_DOCUMENT = 2
 snips = storage.snips or {}
 
 
-@borg.on(events.NewMessage(pattern=r'(?:\.snip +|!)(\w+)$', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'(?:\.snip\s+|!)(\S+)$', outgoing=True))
 async def on_snip(event):
     loop.create_task(event.delete())
     name = event.pattern_match.group(1)
@@ -36,7 +39,7 @@ async def on_snip(event):
                             reply_to=event.message.reply_to_msg_id)
 
 
-@borg.on(events.NewMessage(pattern=r'\.snips (\S+)', outgoing=True))
+@borg.on(events.NewMessage(pattern=r'\.snips\s+(\S+)', outgoing=True))
 async def on_snip_save(event):
     loop.create_task(event.delete())
     name = event.pattern_match.group(1)
