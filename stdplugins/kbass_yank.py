@@ -16,7 +16,7 @@ def get_message_html(message):
     return thtml.unparse(message.message, message.entities)
 
 
-@self_reply_selector(borg, r'\.y')
+@self_reply_selector(borg, 'y')
 async def on_yank(event, targets, num_offset):
     message = '\n\n'.join(get_message_html(target) for target in targets)
     message, entities = thtml.parse(message)

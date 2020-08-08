@@ -12,7 +12,7 @@ from telethon.tl.functions.messages import EditMessageRequest
 from stdplugins.kbass_core import self_reply_cmd
 
 
-@self_reply_cmd(borg, r"^\.e$")
+@self_reply_cmd(borg, "e")
 async def on_edit_start(event, target):
     await borg(SaveDraftRequest(
         peer=await event.get_input_chat(),
@@ -23,7 +23,7 @@ async def on_edit_start(event, target):
     ))
 
 
-@self_reply_cmd(borg, r'(?ms)^(.+\n|\.)\.e$')
+@self_reply_cmd(borg, r'(?ms)^(.+\n|\.)e$')
 async def on_edit_end(event, target):
     text = event.pattern_match.group(1)
     if text == '.':
