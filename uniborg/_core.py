@@ -17,7 +17,7 @@ async def load_reload(event):
     try:
         if shortname in borg._plugins:
             await borg.remove_plugin(shortname)
-        borg.load_plugin(shortname)
+        await borg.load_plugin(shortname)
 
         msg = await event.respond(
             f"Successfully (re)loaded plugin {shortname}")
