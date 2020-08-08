@@ -31,7 +31,7 @@ async def on_update_chan(e):
         return
     channel = await borg.get_input_entity(channel_id)
     self_participant = await borg(GetParticipantRequest(channel, InputUserSelf()))
-    if not isinstance(self_participant, (tl.types.ChannelParticipantSelf, tl.types.ChannelParticipantAdmin)):
+    if not hasattr(self_participant.participant, 'inviter_id'):
         return
     inviter_id = self_participant.participant.inviter_id
     await on_added(inviter_id, channel_id)
