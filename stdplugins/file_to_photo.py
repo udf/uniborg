@@ -46,7 +46,7 @@ async def on_file_to_photo(event):
     )
 
     im.name = "image.png"
-    should_delete = (target.from_id == borg.uid and event.pattern_match.group(1))
+    should_delete = (target.out and event.pattern_match.group(1))
 
     try:
         await borg.send_message(
