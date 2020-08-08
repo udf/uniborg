@@ -28,6 +28,18 @@ async def is_read(borg, entity, message, is_out=None):
     return message_id <= max_id
 
 
+async def get_target_self_message(borg, event):
+    """
+    Returns the reply message if it's from us.
+    Otherwise returns the most recent message from us
+    """
+    target = await event.get_reply_message()
+    if event.is_reply and target.out:
+        return target
+    if not target:
+        return await get_recent_self_message(borg, event)
+
+
 async def get_recent_self_message(borg, event):
     async for message in borg.iter_messages(
             await event.get_input_chat(), limit=20):
