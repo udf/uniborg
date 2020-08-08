@@ -5,22 +5,13 @@
 Enhances your markdown capabilities
 """
 import re
+from random import choice
 from functools import partial
 
 from telethon import events
 from telethon.tl.functions.messages import EditMessageRequest
-from telethon.extensions.markdown import DEFAULT_URL_RE
 from telethon.utils import add_surrogate, del_surrogate
 from telethon.tl.types import MessageEntityTextUrl
-
-
-def parse_url_match(m):
-    entity = MessageEntityTextUrl(
-        offset=m.start(),
-        length=len(m.group(1)),
-        url=del_surrogate(m.group(2))
-    )
-    return m.group(1), entity
 
 
 def parse_aesthetics(m):
@@ -35,12 +26,8 @@ def parse_aesthetics(m):
     return "".join(aesthetify(m[1])), None
 
 
-def parse_strikethrough(m):
-    return ("\u0336".join(m[1]) + "\u0336"), None
-
-
-def parse_enclosing_circle(m):
-    return ("\u20e0".join(m[1]) + "\u20e0"), None
+def parse_randcase(m):
+    return ''.join(choice([str.upper, str.lower])(c) for c in m[1]), None
 
 
 def parse_subreddit(m):
@@ -48,31 +35,17 @@ def parse_subreddit(m):
     entity = MessageEntityTextUrl(
         offset=m.start(2),
         length=len(text),
-        url=f'reddit.com{text}'
+        url=f'https://reddit.com{text}'
     )
     return m.group(1) + text, entity
-
-
-def parse_snip(m):
-    try:
-        name = m.group(1)[1:]
-        snip = borg._plugins['snip'].storage.snips[name]
-        if snip['type'] == borg._plugins['snip'].TYPE_TEXT:
-            return snip['text'], None
-    except KeyError:
-        pass
-    return m.group(1), None
 
 
 # A matcher is a tuple of (regex pattern, parse function)
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
-    (DEFAULT_URL_RE, parse_url_match),
-    (re.compile(r'!\+(.+?)\+!'), parse_aesthetics),
-    (re.compile(r'~~(.+?)~~'), parse_strikethrough),
-    (re.compile(r'@@(.+?)@@'), parse_enclosing_circle),
-    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
-    (re.compile(r'(!\w+)'), parse_snip)
+    (re.compile(r'a\.\.\s?(.+?)\.\.'), parse_aesthetics),
+    (re.compile(r'c\.\.\s?(.+?)\.\.'), parse_randcase),
+    (re.compile(r'([^/\w]|^)(/?([ru]/\w+))'), parse_subreddit),
 ]
 
 
