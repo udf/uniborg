@@ -72,7 +72,7 @@ async def on_save(event):
     await on_sticker(target)
 
 
-@borg.on(events.NewMessage(chats=borg.uid))
+@borg.on(events.NewMessage(chats=borg.uid, outgoing=False))
 @borg.on(events.NewMessage(outgoing=True))
 async def on_sticker(event):
     if not event.sticker:
