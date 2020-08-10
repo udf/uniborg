@@ -50,17 +50,37 @@ base126 = Base126()
 # {id: InputDocument}
 cache = {}
 
-# {sticker/gif id: sticker/gif id}
-id_relations = {int(k): v for k, v in (storage.id_relations or {}).items()}
+# {sticker id: gif id}
+stickers_to_gifs = {int(k): v for k, v in (storage.stickers_to_gifs or {}).items()}
 
 
 def cache_store(input_doc):
     cache[input_doc.id] = input_doc
 
 
-def add_id_relation(a, b):
-    id_relations[a.id] = b.id
-    storage.id_relations = id_relations
+async def upload_gif(file, sticker_id, pack_id=0, pack_hash=0):
+    logger.info(f'Uploading gif for {sticker_id}')
+    filename = magic_filename_fmt.format(
+        b64encode(
+            struct.pack(magic_filename_packed_fmt, sticker_id, pack_id, pack_hash)
+        ).decode('ascii')
+    )
+    uploaded_file = await borg.upload_file(
+        file,
+        file_name=filename,
+        part_size_kb=512
+    )
+    media = await borg(UploadMediaRequest('me', uploaded_file))
+    media = utils.get_input_document(media)
+
+    cache_store(media)
+    stickers_to_gifs[sticker_id] = media.id
+    storage.stickers_to_gifs = stickers_to_gifs
+
+    logger.info(f'Saving {media.id} for {sticker_id}')
+    await borg(
+        SaveGifRequest(id=media, unsave=False)
+    )
 
 
 @borg.on(borg.admin_cmd('ss'))
@@ -81,7 +101,7 @@ async def on_sticker(event):
     cache_store(utils.get_input_document(event.sticker))
 
     # try to fetch and (re)save the gif for this sticker if we have it
-    gif_id = id_relations.get(event.sticker.id, 0)
+    gif_id = stickers_to_gifs.get(event.sticker.id, 0)
     gif_file = cache.get(gif_id, None)
     if gif_file:
         logger.info(f'(Re)saving cached GIF ({gif_file.id}) for {event.sticker.id}')
@@ -89,15 +109,6 @@ async def on_sticker(event):
             SaveGifRequest(id=gif_file, unsave=False)
         )
         return
-
-    # store sticker and set info so that we can find the sticker later on
-    sticker_set = event.file.sticker_set
-    info_items = (0, 0, 0)
-    if hasattr(sticker_set, 'id'):
-        info_items = (event.sticker.id, sticker_set.id, sticker_set.access_hash)
-    filename_data = b64encode(
-        struct.pack(magic_filename_packed_fmt, *info_items)
-    ).decode('ascii')
 
     logger.info(f'Downloading {event.sticker.id}')
     # download and pack sticker data
@@ -150,27 +161,13 @@ async def on_sticker(event):
     )
     infile.close()
 
-    logger.info(f'Uploading {event.sticker.id}')
-    # upload file
-    file = await borg.upload_file(outfile, part_size_kb=512)
+    sticker_set = event.file.sticker_set
+    pack_info = tuple()
+    if hasattr(sticker_set, 'id'):
+        pack_info = (sticker_set.id, sticker_set.access_hash)
+
+    await upload_gif(outfile, event.sticker.id, *pack_info)
     outfile.close()
-    file = types.InputMediaUploadedDocument(
-        file,
-        'video/mp4',
-        [types.DocumentAttributeFilename(
-            magic_filename_fmt.format(filename_data)
-        )]
-    )
-    media = await borg(UploadMediaRequest('me', file))
-    media = utils.get_input_document(media)
-
-    cache_store(media)
-    add_id_relation(event.sticker, media)
-
-    logger.info(f'Saving {media.id} for {event.sticker.id}')
-    await borg(
-        SaveGifRequest(id=media, unsave=False)
-    )
 
 
 @borg.on(events.NewMessage(outgoing=True))
@@ -186,12 +183,6 @@ async def on_gif(event):
         magic_filename_packed_fmt,
         b64decode(m.group(1))
     )
-
-    # override sticker id for stickers without a pack
-    if event.gif.id in id_relations:
-        sticker_id = id_relations[event.gif.id]
-        # make sure we don't try to fetch the pack
-        pack_id = 0
 
     # try to send from cache
     sticker_file = cache.get(sticker_id, None)
@@ -228,9 +219,9 @@ async def on_gif(event):
 
     # download file and unpack comment data (webp file)
     logger.info(f'Downloading mp4 ({event.gif.id})')
-    sticker_file = NamedTemporaryFile('wb')
-    await borg.download_media(event.gif, file=sticker_file)
-    data = ffmpeg.probe(sticker_file.name)
+    gif_file = NamedTemporaryFile()
+    await borg.download_media(event.gif, file=gif_file)
+    data = ffmpeg.probe(gif_file.name)
     tags = data['format']['tags']
     comment = tags.get('comment')
     if not comment:
@@ -243,10 +234,14 @@ async def on_gif(event):
     sticker_file.name = 'sticker.webp'
     m = await send_replacement_message(event, file=sticker_file)
     cache_store(utils.get_input_document(m.sticker))
-    # Prevent us from creating a new gif if this sticker file is sent again
-    add_id_relation(m.sticker, event.gif)
-    # Prevent us from uploading this sticker as long as cache is valid
-    add_id_relation(event.gif, m.sticker)
+
+    # Re-upload existing gif with a new name
+    # so that it points to the sticker we just uploaded
+    gif_file.seek(0)
+    await upload_gif(gif_file, m.sticker.id)
+    await borg(
+        SaveGifRequest(id=event.gif, unsave=True)
+    )
 
 
 async def fetch_saved_gifs():
