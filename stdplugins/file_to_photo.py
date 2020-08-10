@@ -49,8 +49,7 @@ async def on_file_to_photo(event):
     should_delete = (target.out and event.pattern_match.group(1))
 
     try:
-        await borg.send_message(
-            await event.get_input_chat(),
+        await event.respond(
             file=im,
             reply_to=None if should_delete else target
         )
