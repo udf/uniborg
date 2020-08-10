@@ -206,7 +206,7 @@ async def on_gif(event):
         logger.info(f'Sending cached sticker for {sticker_id}')
         try:
             await send_replacement_message(event, file=sticker_file)
-            link_sticker_to_gif(m.sticker.id, event.gif.id)
+            link_sticker_to_gif(sticker_file.id, event.gif.id)
             return
         except errors.FileReferenceExpiredError:
             logger.info(f'Cache expired for {sticker_id}')
