@@ -104,11 +104,14 @@ async def on_sticker(event):
     gif_id = stickers_to_gifs.get(event.sticker.id, 0)
     gif_file = cache.get(gif_id, None)
     if gif_file:
-        logger.info(f'(Re)saving cached GIF ({gif_file.id}) for {event.sticker.id}')
-        await borg(
-            SaveGifRequest(id=gif_file, unsave=False)
-        )
-        return
+        logger.info(f'(Re)saving cached GIF ({gif_id}) for {event.sticker.id}')
+        try:
+            await borg(
+                SaveGifRequest(id=gif_file, unsave=False)
+            )
+            return
+        except errors.FileReferenceExpiredError:
+            del cache[gif_id]
 
     logger.info(f'Downloading {event.sticker.id}')
     # download and pack sticker data
@@ -193,7 +196,6 @@ async def on_gif(event):
             return
         except errors.FileReferenceExpiredError:
             del cache[sticker_id]
-            pass
 
     # try to get pack and find sticker in there
     try:
