@@ -33,7 +33,7 @@ b64encode = partial(b64encode, altchars=b'+#')
 b64decode = partial(b64decode, altchars=b'+#')
 magic_filename_fmt = 'G2S{}.mp4'
 magic_filename_re = re.compile(r'^G2S(.+)\.mp4$')
-# sticker id, sticker set id, sticker set hash + sticker webp
+# sticker id, sticker set id, sticker set hash
 magic_filename_packed_fmt = '!qqq'
 
 class Base126(Encoder):
