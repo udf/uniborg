@@ -50,16 +50,17 @@ base126 = Base126()
 # {id: InputDocument}
 cache = {}
 
-# {sticker id: gif id}
-sticker_to_gif = {int(k): v for k, v in (storage.sticker_to_gif or {}).items()}
+# {sticker/gif id: sticker/gif id}
+id_relations = {int(k): v for k, v in (storage.id_relations or {}).items()}
+
 
 def cache_store(input_doc):
     cache[input_doc.id] = input_doc
 
 
-def add_sticker_to_gif_relation(sticker, gif):
-    sticker_to_gif[sticker.id] = gif.id
-    storage.sticker_to_gif = sticker_to_gif
+def add_id_relation(a, b):
+    id_relations[a.id] = b.id
+    storage.id_relations = id_relations
 
 
 @borg.on(borg.admin_cmd('ss'))
@@ -80,7 +81,7 @@ async def on_sticker(event):
     cache_store(utils.get_input_document(event.sticker))
 
     # try to fetch and (re)save the gif for this sticker if we have it
-    gif_id = sticker_to_gif.get(event.sticker.id, 0)
+    gif_id = id_relations.get(event.sticker.id, 0)
     gif_file = cache.get(gif_id, None)
     if gif_file:
         logger.info(f'(Re)saving cached GIF ({gif_file.id}) for {event.sticker.id}')
@@ -164,7 +165,7 @@ async def on_sticker(event):
     media = utils.get_input_document(media)
 
     cache_store(media)
-    add_sticker_to_gif_relation(event.sticker, media)
+    id_relations(event.sticker, media)
 
     logger.info(f'Saving {media.id} for {event.sticker.id}')
     await borg(
@@ -186,6 +187,12 @@ async def on_gif(event):
         b64decode(m.group(1))
     )
 
+    # override sticker id for stickers without a pack
+    if event.gif.id in id_relations:
+        sticker_id = id_relations[event.gif.id]
+        # make sure we don't try to fetch the pack
+        pack_id = 0
+
     # try to send from cache
     sticker_file = cache.get(sticker_id, None)
     if sticker_file:
@@ -199,7 +206,7 @@ async def on_gif(event):
 
     # try to get pack and find sticker in there
     try:
-        if not sticker_id:
+        if not pack_id:
             raise FileNotFoundError
         logger.info(f'Fetching pack {pack_id} for {sticker_id}')
         pack = await borg(
@@ -237,7 +244,9 @@ async def on_gif(event):
     m = await send_replacement_message(event, file=sticker_file)
     cache_store(utils.get_input_document(m.sticker))
     # Prevent us from creating a new gif if this sticker file is sent again
-    add_sticker_to_gif_relation(m.sticker, event.gif)
+    add_id_relation(m.sticker, event.gif)
+    # Prevent us from uploading this sticker as long as cache is valid
+    add_id_relation(event.gif, m.sticker)
 
 
 async def fetch_saved_gifs():
