@@ -62,3 +62,13 @@ def sync_timeout(seconds):
             return r
         return wrapper
     return decorator
+
+async def send_replacement_message(event, *args, **kwargs):
+    """
+    Same as event.respond()
+    but with reply_to already set to what this event is replying to
+    """
+    if 'reply_to' in kwargs:
+        raise ValueError("reply_to must not be provided")
+    kwargs['reply_to'] = event.message.reply_to_msg_id
+    return await event.respond(*args, **kwargs)
