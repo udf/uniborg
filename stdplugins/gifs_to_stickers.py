@@ -165,7 +165,7 @@ async def on_sticker(event):
     media = utils.get_input_document(media)
 
     cache_store(media)
-    id_relations(event.sticker, media)
+    add_id_relation(event.sticker, media)
 
     logger.info(f'Saving {media.id} for {event.sticker.id}')
     await borg(
