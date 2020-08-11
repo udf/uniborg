@@ -6,7 +6,6 @@ when a FileReferenceExpiredError occurs
 import asyncio
 import time
 
-from base64 import b64encode, b64decode
 from dataclasses import dataclass, field
 
 from telethon import types, utils, errors
@@ -75,8 +74,9 @@ async def fetch_file(name):
     if old_file:
         new_file.prev_duration = new_file.timestamp - old_file.timestamp
         duration_delta = abs(new_file.prev_duration - old_file.prev_duration)
+        logger.info(f'Fetched {name}, new {new_file.prev_duration}, prev {old_file.prev_duration} ({duration_delta} diff)')
     files[name] = new_file
-    return True, duration_delta >= 300
+    return True, duration_delta >= 60 * 30
 
 
 async def check_file(name, file):
@@ -85,6 +85,7 @@ async def check_file(name, file):
             break
         return False, False
     except errors.FileReferenceExpiredError:
+        logger.info(f'Ref expired for {name}')
         pass
 
     return await fetch_file(name)
@@ -121,6 +122,7 @@ async def main():
     storage.files = files
 
     while 1:
+        logger.info('Checking files')
         changed = set()
         any_expired = False
         for name, file in files.items():
