@@ -80,11 +80,12 @@ async def fetch_file(name):
     dc_id, input_location = utils.get_input_location(m.media)
     new_file = File(input_location)
     old_file = files.get(name)
-    prev_duration = new_file.prev_duration
+    duration_delta = 0
     if old_file:
         new_file.prev_duration = new_file.timestamp - old_file.timestamp
+        duration_delta = abs(new_file.prev_duration - old_file.prev_duration)
     files[name] = new_file
-    return True, abs(prev_duration - new_file.prev_duration) >= 300
+    return True, duration_delta >= 300
 
 
 async def check_file(name, file):
