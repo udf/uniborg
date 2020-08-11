@@ -47,11 +47,11 @@ if '_UniborgPlugins' in __name__ :
     things['GIF (pm)'] = Thing(None, 1828)
 
 intervals = (
-    ('weeks', 60 * 60 * 24 * 7),
-    ('days', 60 * 60 * 24),
-    ('hours', 60 * 60),
-    ('minutes', 60),
-    ('seconds', 1),
+    ('w', 60 * 60 * 24 * 7),
+    ('d', 60 * 60 * 24),
+    ('h', 60 * 60),
+    ('m', 60),
+    ('s', 1),
 )
 
 
@@ -63,10 +63,8 @@ def display_time(seconds):
         if not value:
             continue
         seconds -= value * count
-        if value == 1:
-            name = name.rstrip('s')
-        result.append("{} {}".format(value, name))
-    return ', '.join(result)
+        result.append(f'{value}{name}')
+    return ' '.join(result)
 
 
 def store_files():
