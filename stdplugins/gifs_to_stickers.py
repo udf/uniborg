@@ -48,7 +48,7 @@ class Base126(Encoder):
 base126 = Base126()
 
 # {id: InputDocument}
-cache = {}
+cache = storage.cache or {}
 
 # {sticker id: gif id}
 stickers_to_gifs = {int(k): v for k, v in (storage.stickers_to_gifs or {}).items()}
@@ -56,6 +56,7 @@ stickers_to_gifs = {int(k): v for k, v in (storage.stickers_to_gifs or {}).items
 
 def cache_store(input_doc):
     cache[input_doc.id] = input_doc
+    storage.cache = cache
 
 
 def link_sticker_to_gif(sticker_id, gif_id):
