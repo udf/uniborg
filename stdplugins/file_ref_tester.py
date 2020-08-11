@@ -5,7 +5,6 @@ when a FileReferenceExpiredError occurs
 
 import asyncio
 import time
-import pickle
 
 from base64 import b64encode, b64decode
 from dataclasses import dataclass, field
@@ -25,26 +24,25 @@ class File:
     timestamp: int = field(default_factory=lambda: round(time.time()))
     prev_duration: int = 0
 
-# Fix pickle not being able to import classes from this module
-from stdplugins.file_ref_tester import File
+
+storage.reload({File})
 
 channel_id = 1210997017
 things = {}
 files = {}
 main_loop = None
 
-if '_UniborgPlugins' in __name__ :
-    things['Sticker from pack (channel)'] = Thing(channel_id, 4)
-    things['Sticker without pack (channel)'] = Thing(channel_id, 7)
-    things['Photo (channel)'] = Thing(channel_id, 5)
-    things['Document (channel)'] = Thing(channel_id, 6)
-    things['GIF (channel)'] = Thing(channel_id, 8)
+things['Sticker from pack (channel)'] = Thing(channel_id, 4)
+things['Sticker without pack (channel)'] = Thing(channel_id, 7)
+things['Photo (channel)'] = Thing(channel_id, 5)
+things['Document (channel)'] = Thing(channel_id, 6)
+things['GIF (channel)'] = Thing(channel_id, 8)
 
-    things['Sticker from pack (pm)'] = Thing(None, 1829)
-    things['Sticker without pack (pm)'] = Thing(None, 1830)
-    things['Photo (pm)'] = Thing(None, 1831)
-    things['Document (pm)'] = Thing(None, 1832)
-    things['GIF (pm)'] = Thing(None, 1828)
+things['Sticker from pack (pm)'] = Thing(None, 1829)
+things['Sticker without pack (pm)'] = Thing(None, 1830)
+things['Photo (pm)'] = Thing(None, 1831)
+things['Document (pm)'] = Thing(None, 1832)
+things['GIF (pm)'] = Thing(None, 1828)
 
 intervals = (
     ('w', 60 * 60 * 24 * 7),
@@ -65,13 +63,6 @@ def display_time(seconds):
         seconds -= value * count
         result.append(f'{value}{name}')
     return ' '.join(result)
-
-
-def store_files():
-    out = {}
-    for name, file in files.items():
-        out[name] = b64encode(pickle.dumps(file)).decode('ascii')
-    storage.files = out
 
 
 async def fetch_file(name):
@@ -124,10 +115,10 @@ async def main():
 
     for name in things.keys():
         if name in storage.files:
-            files[name] = pickle.loads(b64decode(storage.files[name]))
+            files[name] = storage.files[name]
             continue
         await fetch_file(name)
-    store_files()
+    storage.files = files
 
     while 1:
         changed = set()
@@ -139,7 +130,7 @@ async def main():
                 changed.add(name)
 
         if any_expired:
-            store_files()
+            storage.files = files
         if changed:
             await send_times_message(changed)
 
@@ -151,5 +142,4 @@ def unload():
         main_loop.cancel()
 
 
-if '_UniborgPlugins' in __name__ :
-    main_loop = asyncio.ensure_future(main())
+main_loop = asyncio.ensure_future(main())
