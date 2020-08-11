@@ -82,29 +82,29 @@ async def fetch_file(name):
     dc_id, input_location = utils.get_input_location(m.media)
     new_file = File(input_location)
     old_file = files.get(name)
+    prev_duration = new_file.prev_duration
     if old_file:
         new_file.prev_duration = new_file.timestamp - old_file.timestamp
     files[name] = new_file
-    return new_file
+    return new_file, abs(prev_duration - new_file.prev_duration)
 
 
 async def check_file(name, file):
     try:
         async for chunk in borg.iter_download(file.input_location):
             break
-        return False
+        return None, 0
     except errors.FileReferenceExpiredError:
         pass
 
-    await fetch_file(name)
-    return True
+    return await fetch_file(name)
 
 
-async def send_times_message(expired):
+async def send_times_message(duration_deltas):
     lines = ['New expiry times (changes marked with *):']
     for name, file in files.items():
         line = f'  {name}: '
-        if name in expired:
+        if duration_deltas.get(name, 0) >= 300:
             line = f'  <b>*{name}</b>: '
         if file.prev_duration:
             line += display_time(file.prev_duration)
@@ -131,14 +131,15 @@ async def main():
     store_files()
 
     while 1:
-        expired = set()
+        new_duration_deltas = {}
         for name, file in files.items():
-            if await check_file(name, file):
-                expired.add(name)
+            new_file, duration_delta = await check_file(name, file)
+            if new_file:
+                new_duration_deltas[name] = duration_delta
 
-        if expired:
+        if new_duration_deltas:
             store_files()
-            await send_times_message(expired)
+            await send_times_message(new_duration_deltas)
 
         await asyncio.sleep(10 * 60)
 
