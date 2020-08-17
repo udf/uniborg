@@ -33,7 +33,7 @@ magic_filename_re = re.compile(r'^G2S(.+)\.mp4$')
 magic_filename_packed_fmt = '!qq'
 
 # {id: InputDocument}
-cache = storage.cache or {}
+cache = {int(k): v for k, v in (storage.cache or {}).items()}
 
 # {sticker id: gif id}
 stickers_to_gifs = {int(k): v for k, v in (storage.stickers_to_gifs or {}).items()}
