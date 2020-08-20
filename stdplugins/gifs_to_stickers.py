@@ -25,23 +25,64 @@ import ffmpeg
 
 CHANNEL_ID = 1483189530
 
+convert_keys_to_int = lambda d: {int(k): v for k, v in d.items()}
 b64encode = partial(b64encode, altchars=b'+#')
 b64decode = partial(b64decode, altchars=b'+#')
+
 magic_filename_fmt = 'G2S{}.mp4'
 magic_filename_re = re.compile(r'^G2S(.+)\.mp4$')
-# msg_id, sticker_id
-magic_filename_packed_fmt = '!qq'
+magic_filename_packed_fmt = '!q'  # sticker_id
 
 # {id: InputDocument}
-cache = {int(k): v for k, v in (storage.cache or {}).items()}
+cache = convert_keys_to_int(storage.cache or {})
+
+# {file id: msg id}
+file_msg_ids = convert_keys_to_int(storage.file_msg_ids or {})
 
 # {sticker id: gif id}
-stickers_to_gifs = {int(k): v for k, v in (storage.stickers_to_gifs or {}).items()}
+stickers_to_gifs = convert_keys_to_int(storage.stickers_to_gifs or {})
 
 
-def cache_store(input_doc):
+async def store_file(document):
+    input_doc = utils.get_input_document(document)
+    logger.info(f'Caching {input_doc.id}')
     cache[input_doc.id] = input_doc
     storage.cache = cache
+
+    if input_doc.id in file_msg_ids:
+        return
+
+    logger.info(f'Saving message for #{input_doc.id}')
+    msg = await borg.send_message(CHANNEL_ID, file=input_doc)
+    file_msg_ids[input_doc.id] = msg.id
+    storage.file_msg_ids = file_msg_ids
+
+
+async def try_with_stored_file(file_id, action):
+    input_doc = cache.get(file_id, None)
+    if input_doc:
+        try:
+            return await action(input_doc)
+        except errors.FileReferenceExpiredError:
+            logger.info(f'Cache expired for #{file_id}')
+            pass
+
+    msg_id = file_msg_ids.get(file_id, None)
+    if not msg_id:
+        logger.error(f'No saved message associated with #{file_id}!')
+        return
+
+    logger.info(f'Fetching message #{msg_id} for #{file_id}')
+    msg = await borg.get_messages(CHANNEL_ID, ids=msg_id)
+    if not msg:
+        logger.error(f'Message #{msg_id} for #{file_id} not found!')
+        del file_msg_ids[msg_id]
+        storage.file_msg_ids = file_msg_ids
+        return
+
+    await store_file(msg.document)
+    input_doc = utils.get_input_document(msg.document)
+    return await action(input_doc)
 
 
 def link_sticker_to_gif(sticker_id, gif_id):
@@ -64,20 +105,20 @@ async def on_sticker(event):
     if not event.sticker:
         return
 
-    cache_store(utils.get_input_document(event.sticker))
+    await store_file(event.sticker)
 
     # try to fetch and (re)save the gif for this sticker if we have it
     gif_id = stickers_to_gifs.get(event.sticker.id, 0)
-    gif_file = cache.get(gif_id, None)
-    if gif_file:
-        logger.info(f'(Re)saving cached GIF ({gif_id}) for {event.sticker.id}')
-        try:
-            await borg(SaveGifRequest(id=gif_file, unsave=False))
+    if gif_id:
+        logger.info(f'(Re)saving GIF #{gif_id} for #{event.sticker.id}')
+        success = await try_with_stored_file(
+            gif_id,
+            lambda f: borg(SaveGifRequest(id=f, unsave=False))
+        )
+        if success:
             return
-        except errors.FileReferenceExpiredError:
-            del cache[gif_id]
 
-    logger.info(f'Converting {event.sticker.id}')
+    logger.info(f'Converting #{event.sticker.id}')
     infile = await borg.download_media(event.sticker, file=NamedTemporaryFile())
 
     # make mp4
@@ -122,12 +163,9 @@ async def on_sticker(event):
     )
     infile.close()
 
-    logger.info(f'Uploading gif for {event.sticker.id,}')
-    msg = await borg.send_message(CHANNEL_ID, file=event.sticker)
+    logger.info(f'Uploading GIF for #{event.sticker.id}')
     filename = magic_filename_fmt.format(
-        b64encode(struct.pack(
-            magic_filename_packed_fmt, msg.id, event.sticker.id
-        )).decode('ascii')
+        b64encode(struct.pack(magic_filename_packed_fmt, event.sticker.id)).decode('ascii')
     )
     uploaded_file = await borg.upload_file(
         outfile,
@@ -138,13 +176,11 @@ async def on_sticker(event):
     media = await borg(UploadMediaRequest('me', uploaded_file))
     media = utils.get_input_document(media)
 
-    cache_store(media)
+    await store_file(media)
     link_sticker_to_gif(event.sticker.id, media.id)
 
-    logger.info(f'Saving {media.id} for {event.sticker.id}')
-    await borg(
-        SaveGifRequest(id=media, unsave=False)
-    )
+    logger.info(f'Saving GIF #{media.id} for #{event.sticker.id}')
+    await borg(SaveGifRequest(id=media, unsave=False))
 
 
 @borg.on(events.NewMessage(outgoing=True))
@@ -156,43 +192,30 @@ async def on_gif(event):
     if not m:
         return
 
-    msg_id, sticker_id = struct.unpack(
+    sticker_id, = struct.unpack(
         magic_filename_packed_fmt,
         b64decode(m.group(1))
     )
-    if not msg_id:
-        return
 
     await event.delete()
 
-    # try to send from cache
-    sticker_file = cache.get(sticker_id, None)
-    if sticker_file:
-        logger.info(f'Sending cached sticker for {sticker_id}')
-        try:
-            await send_replacement_message(event, file=sticker_file)
-            return
-        except errors.FileReferenceExpiredError:
-            logger.info(f'Cache expired for {sticker_id}')
-            del cache[sticker_id]
-
-    # try to get message and send sticker
-    logger.info(f'Fetching message #{msg_id} for {sticker_id}')
-    msg = await borg.get_messages(CHANNEL_ID, ids=msg_id)
+    # try to send from cache/saved message
+    logger.info(f'Sending saved sticker #{sticker_id} for #{event.gif.id}')
+    msg = await try_with_stored_file(
+        sticker_id,
+        lambda f: send_replacement_message(event, file=f)
+    )
     if msg:
-        cache_store(utils.get_input_document(msg.sticker))
-        await send_replacement_message(event, file=msg.sticker)
+        await store_file(event.gif)
         return
 
-    logger.info(f'Message #{msg_id} not found, unsaving #{event.gif.id}')
+    logger.info(f'Saved message for #{sticker_id} not found, unsaving gif #{event.gif.id}')
     for sticker_id, gif_id in stickers_to_gifs.items():
         if gif_id == event.gif.id:
             del stickers_to_gifs[sticker_id]
             break
     storage.stickers_to_gifs = stickers_to_gifs
-    await borg(
-        SaveGifRequest(id=event.gif, unsave=True)
-    )
+    await borg(SaveGifRequest(id=event.gif, unsave=True))
 
 
 async def on_init():
@@ -203,8 +226,6 @@ async def on_init():
         logger.info(f'Got channel: {repr(channel)}')
     except Exception as e:
         logger.info('Error getting channel: {e}')
-
-    # TODO: fetch saved gifs if we start needing file reference to save a gif
 
 
 asyncio.ensure_future(on_init())
