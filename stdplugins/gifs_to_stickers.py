@@ -1,10 +1,6 @@
 """
 Converts stickers that you send into gifs that when sent are replaced by the
 original sticker
-
-Caveats:
-- Files are only removed from cache if sending fails because the reference expired,
-  this means cache can grow forever
 """
 import asyncio
 import subprocess
