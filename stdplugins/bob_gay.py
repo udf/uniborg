@@ -12,6 +12,7 @@ from api_key import blanks
 
 
 CHAT_ID = 151462131
+MSG_IDS = set()
 
 
 def insert_blanks(s):
@@ -34,7 +35,11 @@ async def h(event):
 ))
 async def no_u(event):
     reply_msg = await event.get_reply_message()
+    if reply_msg and reply_msg.id in MSG_IDS:
+        await event.delete(revoke=True)
+        return
     if reply_msg and event.message.date - reply_msg.date <= timedelta(seconds=5):
         return
     m = event.pattern_match
-    await event.reply(insert_blanks(f'{m.group(1)}{m.string}'.lower()))
+    msg = await event.reply(insert_blanks(f'{m.group(1)}{m.string}'.lower()))
+    MSG_IDS.add(msg.id)
