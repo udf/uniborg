@@ -3,12 +3,22 @@ bob pls
 """
 
 import asyncio
+from random import choice
 from datetime import timedelta
 from telethon import events
 from telethon.tl import types
 
+from api_key import blanks
 
-@borg.on(events.NewMessage(chats=151462131, incoming=True))
+
+CHAT_ID = 151462131
+
+
+def insert_blanks(s):
+    return ''.join(c + choice((choice(blanks), '')) for c in s)
+
+
+@borg.on(events.NewMessage(chats=CHAT_ID, incoming=True))
 async def h(event):
     if not event.message.document:
         return
@@ -18,7 +28,7 @@ async def h(event):
 
 @borg.on(events.NewMessage(
     pattern=r'(?i)(n(o|ein|ada)+[\s\u2063]+){1,50}([bdj]?(?:[uü]+|y\s?(?:o\s?u|e\s?w)))',
-    chats=151462131,
+    chats=CHAT_ID,
     incoming=True,
     forwards=False
 ))
@@ -27,5 +37,4 @@ async def no_u(event):
     if reply_msg and event.message.date - reply_msg.date <= timedelta(seconds=5):
         return
     m = event.pattern_match
-    msg = await event.reply('\u2063')
-    await msg.edit(f'{m.group(1)}{m.string}'.lower())
+    await event.reply(insert_blanks(f'{m.group(1)}{m.string}'.lower()))
