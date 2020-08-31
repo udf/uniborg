@@ -2,27 +2,48 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import asyncio
 from telethon import events, utils
 from telethon.tl import types
 from telethon.tl.functions.messages import SaveDraftRequest
 
 
-@borg.on(events.Raw(types=types.UpdateDraftMessage))
-async def _(update):
-    if isinstance(update.draft, types.DraftMessageEmpty):
+pending_messages = asyncio.Queue()
+help_msg = None
+
+
+@borg.on(events.NewMessage(chats=borg.uid, outgoing=False))
+async def resend(event):
+    if not help_msg:
         return
-    if update.draft.message != '.sr':
+    await pending_messages.put(event.message)
+
+
+@borg.on(events.NewMessage(chats=borg.uid, pattern=r'^\.sr$', outgoing=True))
+async def toggle(event):
+    global help_msg
+    if help_msg:
+        await help_msg.delete()
+        help_msg = None
+        await event.edit('Save resend has been disabled')
+        await asyncio.sleep(3)
+        await event.delete()
         return
-    reply_id = update.draft.reply_to_msg_id
-    if not reply_id:
-        return
-    message = await borg.get_messages(
-        update.peer,
-        ids=reply_id,
-    )
-    await borg.send_message('me', message)
-    await borg(SaveDraftRequest(
-        peer=update.peer,
-        message='',
-        reply_to_msg_id=reply_id
-    ))
+    await event.edit('Save resend is enabled')
+    help_msg = event.message
+
+
+async def sender():
+    global pending_messages
+    while 1:
+        m = await pending_messages.get()
+        await borg.send_message('me', m)
+        await borg.delete_messages('me', m)
+
+
+def unload():
+    if sender_loop:
+        sender_loop.cancel()
+
+
+sender_loop = asyncio.ensure_future(sender())
