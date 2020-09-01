@@ -29,6 +29,8 @@ def parse_aesthetics(m):
 def parse_randcase(m):
     return ''.join(choice([str.upper, str.lower])(c) for c in m[1]), None
 
+def parse_b_meme(m):
+    return re.sub(r'\b\w', '🅱️', m[1]), None
 
 def parse_subreddit(m):
     text = '/' + m.group(3)
@@ -44,6 +46,7 @@ def parse_subreddit(m):
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
     (re.compile(r'a\.\.\s?(.+?)\.\.'), parse_aesthetics),
+    (re.compile(r'b\.\.\s?(.+?)\.\.'), parse_b_meme),
     (re.compile(r'c\.\.\s?(.+?)\.\.'), parse_randcase),
     (re.compile(r'([^/\w]|^)(/?([ru]/\w+))'), parse_subreddit),
 ]
