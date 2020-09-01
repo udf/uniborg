@@ -30,7 +30,7 @@ def parse_randcase(m):
     return ''.join(choice([str.upper, str.lower])(c) for c in m[1]), None
 
 def parse_b_meme(m):
-    return re.sub(r'(\s|^)\S', r'\1🅱️', m[1]), None
+    return re.sub(r'(\s|^)\S(\S)', r'\1🅱️\2', m[1]), None
 
 def parse_subreddit(m):
     text = '/' + m.group(3)
