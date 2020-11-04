@@ -6,7 +6,8 @@ Show all .info about the replied message
 """
 from telethon import events
 from telethon.utils import add_surrogate
-from telethon.tl.types import MessageEntityPre
+from telethon.tl.functions.channels import GetParticipantRequest
+from telethon.tl.types import InputPeerChannel, MessageEntityPre
 from telethon.tl.tlobject import TLObject
 import datetime
 
@@ -89,7 +90,34 @@ def yaml_format(obj, indent=0):
 @borg.on(events.NewMessage(pattern=r"\.info", outgoing=True))
 async def _(event):
     if not event.message.is_reply:
+        await who(event)
         return
     msg = await event.message.get_reply_message()
     yaml_text = yaml_format(msg)
+    await event.edit(yaml_text, parse_mode=parse_pre)
+
+
+@borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
+async def who(event):
+    participant = None
+    if not event.message.is_reply:
+        who = await event.get_chat()
+    else:
+        msg = await event.message.get_reply_message()
+        if msg.forward:
+          	# FIXME forward privacy memes
+            who = await borg.get_entity(
+                msg.forward.sender_id or msg.forward.channel_id)
+        else:
+            who = await msg.get_sender()
+            ic = await event.get_input_chat()
+            if isinstance(ic, InputPeerChannel):
+                participant = (await borg(GetParticipantRequest(
+                    ic,
+                    who
+                ))).participant
+    yaml_text = yaml_format(who)
+    if participant is not None:
+        yaml_text += "\n"
+        yaml_text += yaml_format(participant)
     await event.edit(yaml_text, parse_mode=parse_pre)

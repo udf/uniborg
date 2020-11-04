@@ -23,28 +23,6 @@ def get_who_string(who, rank=None):
     return who_string
 
 
-@borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
-async def _(event):
-    rank = None
-    if not event.message.is_reply:
-        who = await event.get_chat()
-    else:
-        msg = await event.message.get_reply_message()
-        if msg.forward:
-          	# FIXME forward privacy memes
-            who = await borg.get_entity(msg.forward.sender_id or msg.forward.chat_id)
-        else:
-            who = await msg.get_sender()
-            ic = await event.get_input_chat()
-            if isinstance(ic, types.InputPeerChannel):
-                rank = getattr((await borg(functions.channels.GetParticipantRequest(
-                    ic,
-                    who
-                ))).participant, 'rank', None)
-
-    await event.edit(get_who_string(who, rank), parse_mode='html')
-
-
 @borg.on(events.NewMessage(pattern=r"\.members", outgoing=True))
 async def _(event):
     last = 0
