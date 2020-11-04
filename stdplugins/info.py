@@ -106,9 +106,11 @@ async def who(event):
     else:
         msg = await event.message.get_reply_message()
         if msg.forward:
-          	# FIXME forward privacy memes
-            who = await borg.get_entity(
-                msg.forward.sender_id or msg.forward.channel_id)
+            if msg.forward.from_name is not None:
+                who = msg.forward.original_fwd
+            else:
+                who = await borg.get_entity(
+                    msg.forward.sender_id or msg.forward.chat_id)
         else:
             who = await msg.get_sender()
             ic = await event.get_input_chat()
