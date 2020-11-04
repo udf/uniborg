@@ -87,17 +87,18 @@ def yaml_format(obj, indent=0):
     return ''.join(result)
 
 
-@borg.on(events.NewMessage(pattern=r"\.info", outgoing=True))
+@borg.on(borg.cmd("info"))
 async def _(event):
     if not event.message.is_reply:
         await who(event)
         return
     msg = await event.message.get_reply_message()
     yaml_text = yaml_format(msg)
-    await event.edit(yaml_text, parse_mode=parse_pre)
+    action = event.edit if not borg.me.bot else event.respond
+    await action(yaml_text, parse_mode=parse_pre)
 
 
-@borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
+@borg.on(borg.cmd("who"))
 async def who(event):
     participant = None
     if not event.message.is_reply:
@@ -120,4 +121,5 @@ async def who(event):
     if participant is not None:
         yaml_text += "\n"
         yaml_text += yaml_format(participant)
-    await event.edit(yaml_text, parse_mode=parse_pre)
+    action = event.edit if not borg.me.bot else event.respond
+    await action(yaml_text, parse_mode=parse_pre)
