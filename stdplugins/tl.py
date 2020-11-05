@@ -34,8 +34,8 @@ LANGUAGES = {
     'ca': 'Catalan',
     'ceb': 'Cebuano',
     'ny': 'Chichewa',
-    'zh-CN': 'Chinese (Simplified)',
-    'zh-TW': 'Chinese (Traditional)',
+    'zh-cn': 'Chinese (Simplified)',
+    'zh-tw': 'Chinese (Traditional)',
     'co': 'Corsican',
     'hr': 'Croatian',
     'cs': 'Czech',
@@ -130,8 +130,6 @@ LANGUAGES = {
     'yo': 'Yoruba',
     'zu': 'Zulu'
 }
-
-LANG_RE = re.compile(r"(?P<src>[a-z]{2,3})?(?:>>(?P<dst>[a-z]{2,3}))?", re.IGNORECASE)
 
 def split_text(text, n=40):
     words = text.split()
@@ -318,11 +316,11 @@ async def _(event):
     argtext = False
     if args := event.pattern_match.group("args"):
         args = args.split(":::", 1)
-        if langs := LANG_RE.match(args[0]):
-            if (s:= langs.group("src") or "").lower() in LANGUAGES:
-                source = s
-            if (t:= langs.group("dst") or "").lower() in LANGUAGES:
-                target = t
+        langs = args[0].split(">>", 1)
+        if (s:= langs[0]).lower() in LANGUAGES:
+            source = s
+        if len(langs) > 1 and (t:= langs[1]).lower() in LANGUAGES:
+            target = t
         if len(args) > 1:
             text = args[1]
         elif source is None and target is None:
@@ -354,7 +352,7 @@ async def _(event):
         source=source,
         target=target
     )
-    source, target = (LANGUAGES.get(l, l.upper()) for l in langs)
+    source, target = (LANGUAGES.get(l.lower(), l.upper()) for l in langs)
     result = f"<b>{source} → {target}:</b>\n{html.escape(translated)}"
     if borg.me.bot:
         action = event.respond
