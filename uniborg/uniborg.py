@@ -124,7 +124,7 @@ class Uniborg(TelegramClient):
             command = fr'{command}(?:@{self.me.username})?'
 
         if pattern is not None:
-            pattern = fr'{command}\s+{pattern}'
+            pattern = fr'{command}{pattern}'
         else:
             pattern = command
 

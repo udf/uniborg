@@ -131,6 +131,7 @@ LANGUAGES = {
     'zu': 'Zulu'
 }
 
+LANG_RE = re.compile(r"(?P<src>[a-z]{2,3})?(?:>>(?P<dst>[a-z]{2,3}))?", re.IGNORECASE)
 
 def split_text(text, n=40):
     words = text.split()
@@ -310,10 +311,27 @@ class Translator:
 translator = Translator()
 
 
-@borg.on(borg.cmd(r"tl"))
+@borg.on(borg.cmd(r"tl", r"(?:\s+(?P<args>.*))?"))
 async def _(event):
+    source, target = None, None
+    text = None
+    argtext = False
+    if args := event.pattern_match.group("args"):
+        args = args.split(":::", 1)
+        if langs := LANG_RE.match(args[0]):
+            if (s:= langs.group("src") or "").lower() in LANGUAGES:
+                source = s
+            if (t:= langs.group("dst") or "").lower() in LANGUAGES:
+                target = t
+        if len(args) > 1:
+            text = args[1]
+        elif source is None and target is None:
+            text = args[0]
+
     if event.is_reply:
         text = (await event.get_reply_message()).raw_text
+    elif text:
+        argtext = True
     elif not borg.me.bot:
         text = ''
         started = False
@@ -331,20 +349,37 @@ async def _(event):
     else:
         return
 
-    langs, translated = await translator.translate(text.strip())
-    source, dest = (LANGUAGES.get(l, l.upper()) for l in langs)
-    result = f"<b>{source} → {dest}:</b>\n{html.escape(translated)}"
-    action = event.edit if not borg.me.bot else event.respond
+    langs, translated = await translator.translate(
+        text.strip(),
+        source=source,
+        target=target
+    )
+    source, target = (LANGUAGES.get(l, l.upper()) for l in langs)
+    result = f"<b>{source} → {target}:</b>\n{html.escape(translated)}"
+    if borg.me.bot:
+        action = event.respond
+    elif argtext:
+        action = event.reply
+    else:
+        action = event.edit
     await action(result, parse_mode="html")
 
 
-@borg.on(borg.cmd(r"tts"))
+@borg.on(borg.cmd(r"tts", r"(?:\s+(?P<args>.*))?"))
 async def _(event):
-    if not borg.me.bot:
-        await event.delete()
+    lang = None
+    text = None
+    if args := event.pattern_match.group("args"):
+        args = args.split(":::", 1)
+        if args[0].lower() in LANGUAGES:
+            lang = args[0]
+        if len(args) > 1:
+            text = args[1]
+        elif lang is None:
+            text = args[0]
 
-    ts = event.raw_text.split(maxsplit=1)
-    text = None if len(ts) < 2 else ts[1]
+    if not borg.me.bot and not text:
+        await event.delete()
 
     if not text and event.is_reply:
         text = (await event.get_reply_message()).raw_text
@@ -352,12 +387,12 @@ async def _(event):
     if not text:
         return
 
-    file = io.BytesIO(await translator.tts(text))
+    file = io.BytesIO(await translator.tts(text, target=lang))
     file.name = 'a.borg+tts'
     await borg.send_file(
         event.chat_id,
         file,
-        reply_to=event.reply_to_msg_id if not borg.me.bot else None,
+        reply_to=event.reply_to_msg_id or event.id if not borg.me.bot else None,
         attributes=[types.DocumentAttributeAudio(
             duration=0,
             voice=True
