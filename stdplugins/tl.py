@@ -6,6 +6,7 @@ Translates stuff into English
 """
 import aiohttp
 import asyncio
+import html
 import io
 import math
 import mimetypes
@@ -271,7 +272,8 @@ class Translator:
 
         async with self._session.get(self._TRANSLATE_URL, params=params) as resp:
             data = await resp.json()
-            return ''.join(part[0] for part in data[0] if part[0] is not None)
+            return (data[2], target or self._target), \
+                ''.join(part[0] for part in data[0] if part[0] is not None)
 
     async def tts(self, text, target=None):
         if self._need_refresh_tkk():
@@ -329,9 +331,10 @@ async def _(event):
     else:
         return
 
-    translated = await translator.translate(text.strip())
+    langs, translated = await translator.translate(text.strip())
+    result = f"<b>{langs[0].upper()} → {langs[1].upper()}:</b>\n{html.escape(translated)}"
     action = event.edit if not borg.me.bot else event.respond
-    await action('translation: ' + translated, parse_mode=None)
+    await action(result, parse_mode="html")
 
 
 @borg.on(borg.cmd(r"tts"))
