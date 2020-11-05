@@ -385,6 +385,10 @@ async def _(event):
     if not text:
         return
 
+    # Attempt to detect text language
+    if lang is None:
+        (lang, _), _ = await translator.translate(text)
+
     file = io.BytesIO(await translator.tts(text, target=lang))
     file.name = 'a.borg+tts'
     await borg.send_file(
