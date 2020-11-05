@@ -332,7 +332,8 @@ async def _(event):
         return
 
     langs, translated = await translator.translate(text.strip())
-    result = f"<b>{langs[0].upper()} → {langs[1].upper()}:</b>\n{html.escape(translated)}"
+    source, dest = (LANGUAGES.get(l, l.upper()) for l in langs)
+    result = f"<b>{source} → {dest}:</b>\n{html.escape(translated)}"
     action = event.edit if not borg.me.bot else event.respond
     await action(result, parse_mode="html")
 
