@@ -4,9 +4,9 @@
 
 import asyncio
 
-from telethon import events
+from telethon import events, utils
 import telethon.tl.functions as tlf
-from telethon.tl.types import InputPeerChannel, UpdateUserBlocked
+from telethon.tl.types import InputPeerChannel, UpdatePeerBlocked
 from telethon.tl.functions.contacts import GetBlockedRequest
 
 
@@ -31,12 +31,13 @@ async def on_mentioned(event):
     await borg(o)
 
 
-@borg.on(events.Raw(types=UpdateUserBlocked))
+@borg.on(events.Raw(types=UpdatePeerBlocked))
 async def on_blocked(event):
+    id = utils.get_peer_id(event.peer_id)
     if event.blocked:
-        blocked_user_ids.add(event.user_id)
+        blocked_user_ids.add(id)
     else:
-        blocked_user_ids.discard(event.user_id)
+        blocked_user_ids.discard(id)
 
 
 async def fetch_blocked_users():
@@ -47,8 +48,8 @@ async def fetch_blocked_users():
         while 1:
             blocked = await borg(GetBlockedRequest(offset=offset, limit=100))
             offset += 100
-            for contact in blocked.blocked:
-                blocked_ids.add(contact.user_id)
+            for peer in blocked.blocked:
+                blocked_ids.add(utils.get_peer_id(peer.peer_id))
             if not blocked.blocked:
                 break
         blocked_user_ids = blocked_ids
