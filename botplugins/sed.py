@@ -1,1 +1,0 @@
-../stdplugins/sed.py
