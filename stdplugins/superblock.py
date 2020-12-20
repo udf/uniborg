@@ -18,7 +18,9 @@ blocked_user_ids = set()
 
 @borg.on(events.NewMessage(incoming=True, func=lambda e: e.message.mentioned))
 async def on_mentioned(event):
-    if utils.get_peer_id(event.from_id) not in blocked_user_ids:
+    if not event.message.from_id:  # Channel messages don't have a from_id
+        return
+    if event.from_id not in blocked_user_ids:
         return
 
     peer = await borg.get_input_entity(event.chat_id)
