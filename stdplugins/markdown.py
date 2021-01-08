@@ -90,7 +90,7 @@ MATCHERS = [
     (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
     (re.compile(r'~~(.+?)~~'), parse_strikethrough),
     (re.compile(r'@@(.+?)@@'), parse_enclosing_circle),
-    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
+    (re.compile(r'([^/\w]|^)(/?(r/\w{3,21}\b))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]
 
