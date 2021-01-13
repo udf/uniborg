@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+from sys import argv
 
 from uniborg import Uniborg
 
@@ -11,6 +12,7 @@ try:
     session_name = argv[1]
 except IndexError:
     session_name = "stdbot"
+
 
 borg = Uniborg(
     session_name,

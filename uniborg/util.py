@@ -5,9 +5,27 @@
 import functools
 import re
 import signal
+from collections import defaultdict
 
 from telethon import events
 from telethon.tl.functions.messages import GetPeerDialogsRequest
+
+
+# Cooldown in seconds
+def cooldown(timeout):
+    def wrapper(function):
+        last_called = defaultdict(int)
+
+        async def wrapped(event, *args, **kwargs):
+            current_time = time.time()
+            if current_time - last_called[event.chat_id] < timeout:
+                time_left = round(timeout - (current_time - last_called[event.chat_id]), 1)
+                await log(event, f"Cooldown: {time_left}s")
+                return
+            last_called[event.chat_id] = current_time
+            return await function(event, *args, **kwargs)
+        return wrapped
+    return wrapper
 
 
 async def is_read(borg, entity, message, is_out=None):
