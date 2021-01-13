@@ -3,14 +3,20 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+from sys import argv
 
 from uniborg import Uniborg
 import api_key
 
 logging.basicConfig(level=logging.INFO)
+try:
+    session_name = argv[1]
+except IndexError:
+    session_name = "stdborg"
+
 
 borg = Uniborg(
-    "stdborg",
+    session_name,
     plugin_path="stdplugins",
     connection_retries=None,
     api_id=api_key.id,
