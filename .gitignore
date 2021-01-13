@@ -7,3 +7,5 @@ api_key.py
 *.session
 *.session-journal
 data/
+
+stdplugins/test.py
