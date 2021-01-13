@@ -7,9 +7,13 @@ import logging
 from uniborg import Uniborg
 
 logging.basicConfig(level=logging.INFO)
+try:
+    session_name = argv[1]
+except IndexError:
+    session_name = "stdbot"
 
 borg = Uniborg(
-    "stdbot",
+    session_name,
     plugin_path="botplugins",
     admins=[12345],
     connection_retries=None
