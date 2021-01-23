@@ -6,6 +6,7 @@ import logging
 from sys import argv
 
 from uniborg import Uniborg
+import config
 
 logging.basicConfig(level=logging.INFO)
 try:
@@ -17,7 +18,7 @@ except IndexError:
 borg = Uniborg(
     session_name,
     plugin_path="botplugins",
-    admins=[12345],
+    admins=config.admins,
     connection_retries=None
 )
 

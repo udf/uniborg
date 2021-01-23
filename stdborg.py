@@ -6,7 +6,7 @@ import logging
 from sys import argv
 
 from uniborg import Uniborg
-import api_key
+import config
 
 logging.basicConfig(level=logging.INFO)
 try:
@@ -19,8 +19,8 @@ borg = Uniborg(
     session_name,
     plugin_path="stdplugins",
     connection_retries=None,
-    api_id=api_key.id,
-    api_hash=api_key.hash
+    api_id=config.id,
+    api_hash=config.hash
 )
 
 borg.run_until_disconnected()

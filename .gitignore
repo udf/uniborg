@@ -9,3 +9,4 @@ api_key.py
 data/
 
 stdplugins/test.py
+config.py
