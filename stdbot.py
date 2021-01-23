@@ -19,7 +19,9 @@ borg = Uniborg(
     session_name,
     plugin_path="botplugins",
     admins=config.admins,
-    connection_retries=None
+    connection_retries=None,
+    api_id=config.id,
+    api_hash=config.hash
 )
 
 borg.run_until_disconnected()

@@ -28,10 +28,11 @@ async def on_photo(event):
     async with borg.action(event.sender_id, "photo"):
         f = await event.download_media(file=BytesIO())
         f.seek(0)
-        im, resolution = await asyncio.get_running_loop().run_in_executor(
-            executor,
-            lambda: downscale(f)
-        )
+        im, resolution = await downscale(f)
+        # im, resolution = await asyncio.get_running_loop().run_in_executor(
+        #     executor,
+        #     lambda: downscale(f)
+        # )
         im.seek(0)
         dimensions = f"`{resolution[0]}x{resolution[1]}`"
 

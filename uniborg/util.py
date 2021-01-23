@@ -5,10 +5,13 @@
 import re
 import signal
 import functools
-from PIL import Image
 from time import time
+from PIL import Image
 from io import BytesIO
+import asyncio
+import concurrent.futures
 from collections import defaultdict
+
 
 from telethon import events
 from telethon.tl.functions.messages import GetPeerDialogsRequest
@@ -32,16 +35,23 @@ def cooldown(timeout):
 
 
 # Downscale an image so it doesn't look bad
-def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
-    im = Image.open(fp)
-    resolution = im.size
-    outfile = BytesIO()
+executor = concurrent.futures.ThreadPoolExecutor()
+async def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
+    def wrapped(fp, max_w=1280, max_h=1280, format="PNG"):
+        im = Image.open(fp)
+        res = im.size
+        out_im = BytesIO()
 
-    im.thumbnail((max_w, max_h), Image.LANCZOS)
-    im.save(outfile, format)
-    outfile.seek(0)
+        im.thumbnail((max_w, max_h), Image.LANCZOS)
+        im.save(out_im, format)
+        out_im.seek(0)
 
-    return outfile, resolution
+        return out_im, res
+
+    return await asyncio.get_event_loop().run_in_executor(
+        executor,
+        lambda: wrapped(fp, max_w, max_w, format)
+    )
 
 
 async def is_read(borg, entity, message, is_out=None):
