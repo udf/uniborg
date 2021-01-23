@@ -2,9 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import functools
 import re
 import signal
+import functools
+from PIL import Image
+from time import time
+from io import BytesIO
 from collections import defaultdict
 
 from telethon import events
@@ -17,15 +20,28 @@ def cooldown(timeout):
         last_called = defaultdict(int)
 
         async def wrapped(event, *args, **kwargs):
-            current_time = time.time()
+            current_time = time()
             if current_time - last_called[event.chat_id] < timeout:
                 time_left = round(timeout - (current_time - last_called[event.chat_id]), 1)
-                await log(event, f"Cooldown: {time_left}s")
                 return
             last_called[event.chat_id] = current_time
             return await function(event, *args, **kwargs)
+        wrapped.__module__ = function.__module__
         return wrapped
     return wrapper
+
+
+# Downscale an image so it doesn't look bad
+def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
+    im = Image.open(fp)
+    resolution = im.size
+    outfile = BytesIO()
+
+    im.thumbnail((max_w, max_h), Image.LANCZOS)
+    im.save(outfile, format)
+    outfile.seek(0)
+
+    return outfile, resolution
 
 
 async def is_read(borg, entity, message, is_out=None):
