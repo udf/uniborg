@@ -16,9 +16,7 @@ whitelist = storage.whitelist or {}
 @borg.on(events.NewMessage(incoming=True,
                 func=lambda e: not e.is_private))
 async def check(event):
-    return
-    if event.chat.id in whitelist:
-        print("in whitelist")
+    if f"{event.chat_id}" in whitelist:
         return
 
     res = await event.respond("Chat not in whitelist.  Leaving.")
@@ -29,7 +27,7 @@ async def check(event):
         await event.client.delete_messages(
             event.chat, res
         )
-    except errors.ChannelPrivateError as e:
+    except errors.ChannelPrivateError:
         pass
 
 
