@@ -18,15 +18,21 @@ from uniborg.util import cooldown
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)((?:i ?)?l(?:o+ve )?(?:y(?:ou)?|u))").search, forwards=False))
 @borg.on(events.NewMessage(
-    pattern=re.compile(r"(?i)((i hate|fuck|screw|damn?) (yo)?u)").search, forwards=False))
+    pattern=re.compile(r"(?i)((?:i hate|fuck|screw|damn?) (?:yo)?u)").search, forwards=False))
+@borg.on(events.NewMessage(
+    pattern=re.compile(r"(?i)(thank(?:s| you|u+)|ty)").search, forwards=False))
 @cooldown(10)
 async def retaliate(event):
     me = await event.client.get_me()
     name = me.first_name
     fname = re.sub(r"\W.+", "", name)
     username = me.username
+    match = event.pattern_match
 
-    if not re.search(fr"(?i)({fname}|{name}|{username})", event.pattern_match.string):
+    if not re.search(fr"(?i)({fname}|{name}|{username})", match.string):
+        return
+    if "thank" in match.string or re.search(r"(^ty|ty$)", match.string):
+        await event.reply("You're welcome!")
         return
 
-    await event.reply(f"{event.pattern_match.group(1)} too!")    # "Love you too!"
+    await event.reply(f"{match.group(1)} too!")    # "Love you too!"
