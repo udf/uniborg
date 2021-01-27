@@ -28,11 +28,13 @@ units = {
 }
 
 
-def is_plural(unit):
+def singular(unit):
     if len(unit) < 3:
         return unit
     if "inch" in unit:
         return "inch"
+    if "met" in unit:
+        return "m"
     if unit.endswith("s"):
         return unit[:-1]
     if "feet" in unit:
@@ -65,14 +67,17 @@ async def distance(event):
 
     if not value:
         value = 1
-        
-    unitfrom = is_plural(m.group(2).lower())
-    unitto = is_plural(m.group(3).lower())
+    value = value.replace(",", ".")
 
-    result = round(float(value)*units[unitfrom]/units[unitto], 3)
-    print(value)
+    unitfrom = singular(m.group(2).lower())
+    unitto = singular(m.group(3).lower())
+
+    try:
+        result = round(float(value)*units[unitfrom]/units[unitto], 3)
+    except ValueError:
+        pass
+
     plural_from = plural(unitfrom, float(value))
-    print(plural_from)
     plural_to = plural(unitto, result)
 
     await event.reply(f"**{value} {plural_from} is:**  `{result} {plural_to}`")
