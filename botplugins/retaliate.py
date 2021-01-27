@@ -14,8 +14,9 @@ from telethon import events
 from uniborg.util import cooldown
 
 
+# love and hate
 @borg.on(events.NewMessage(
-    pattern=re.compile(r"(?i)((?:i ?)?l(?:o+ve )?(?:y| you|u)+)").search, forwards=False))
+    pattern=re.compile(r"(?i)((?:i ?)?l(?:o+ve )?(?:y(?:ou)?|u))").search, forwards=False))
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)((i hate|fuck|screw|damn?) (yo)?u)").search, forwards=False))
 @cooldown(10)
