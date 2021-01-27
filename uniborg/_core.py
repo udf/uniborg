@@ -67,6 +67,8 @@ async def list_plugins(event):
 async def help(event):
     if not borg.me.bot:
         return
+    if not event.is_private:
+        return
 
     shortname = event.pattern_match["shortname"]
     plugin_dict = {}
