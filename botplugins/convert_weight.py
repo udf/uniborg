@@ -49,10 +49,5 @@ async def weight(event):
 @borg.on(borg.cmd(r"weights$"))
 @cooldown(60)
 async def list_weights(event):
-    usr_group = event.pattern_match.group(1)
-    username = (await event.client.get_me()).username
-    if usr_group and username not in usr_group:
-        return
-
-    text = f"**List of supported weights:**\n{', '.join(sorted(units.keys()))}"
+    text = f"**List of supported weights:**\n" + ", ".join(sorted(units.keys()))
     await event.reply(text)
