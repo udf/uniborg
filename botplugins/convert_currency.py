@@ -37,13 +37,14 @@ def update_currencies():
 
 # Convert Currency
 @borg.on(events.NewMessage(
-    pattern=r"(?i)^(\d{1,9}|\d{1,9}\.\d\d?)? ?([a-z]{3}) (?:to|in) ([a-z]{3})$"))
+    pattern=r"(?i)^(\d{1,9}|\d{1,9}[\.,]\d\d?)? ?([a-z]{3}) (?:to|in) ([a-z]{3})$"))
 async def currency(event):
     update_currencies()
-    fromval = event.pattern_match.group(1)
+    value = event.pattern_match.group(1)
 
-    if not fromval:
-        fromval = 1
+    if not value:
+        value = 1
+    value = value.replace(",", ".")
 
     fromcur = event.pattern_match.group(2).upper()
     tocur = event.pattern_match.group(3).upper()
@@ -53,8 +54,8 @@ async def currency(event):
     if tocur.upper() not in c.currencies:
         return
 
-    result = round(c.convert(fromval, fromcur, tocur), 2)
-    await event.reply(f"**{fromval} {fromcur} is:**  `{result} {tocur}`")
+    result = round(c.convert(value, fromcur, tocur), 2)
+    await event.reply(f"**{value} {fromcur} is:**  `{result} {tocur}`")
 
 
 @borg.on(borg.cmd(r"currencies$"))

@@ -59,7 +59,7 @@ def plural(unit, amount):
 
 
 @borg.on(events.NewMessage(
-    pattern=r"(?i)(\d+(?:(?:\.|,)\d+)?)? ?((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly)) (?:to|in) ((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly))$"
+    pattern=r"(?i)(\d+(?:[\.,]\d+)?)? ?((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly)) (?:to|in) ((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly))$"
 ))
 async def distance(event):
     m = event.pattern_match

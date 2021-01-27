@@ -30,7 +30,7 @@ async def is_plural(unit):
     return unit[:-1]
 
 @borg.on(events.NewMessage(
-    pattern=r"(?i)^(\d+(?:(?:\.|,)\d+)?)? ?(k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?) (?:to|in) (k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?)$"
+    pattern=r"(?i)^(\d+(?:[\.,]\d+)?)? ?(k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?) (?:to|in) (k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?)$"
 ))
 async def weight(event):
     m = event.pattern_match
@@ -38,7 +38,8 @@ async def weight(event):
 
     if not value:
         value = 1
-        
+    value = value.replace(",", ".")
+
     unitfrom = await is_plural(m.group(2).lower())
     unitto = await is_plural(m.group(3).lower())
 
