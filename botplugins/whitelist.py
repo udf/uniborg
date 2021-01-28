@@ -4,6 +4,7 @@ The bot will only stay in groups in the whitelist.
 
 Add groups to the whitelist with `/awhitelist -100123456789:Group Name`, and remove \
 from the whitelist with `/awhitelist -100123456789`.
+
 View the whitelist with `/whitelist`
 """
 
