@@ -23,7 +23,7 @@ from uniborg.util import cooldown, edit_blacklist
     pattern=re.compile(r"(?i)((?:i hate|fuck|screw|damn?) (?:yo)?u)").search, forwards=False))
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)(thank(?:s| you|u+)|ty)").search, forwards=False))
-@cooldown(10)
+# @cooldown(10)
 async def retaliate(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
@@ -33,15 +33,21 @@ async def retaliate(event):
     name = me.first_name
     fname = re.sub(r"\W.+", "", name)
     username = me.username
-    match = event.pattern_match
+    name_list = "|".join([name, fname, username])
 
-    if not re.search(fr"(?i)({fname}|{name}|{username})", match.string):
+    match = event.pattern_match
+    string = match.string.replace("\\", u"\u005c\u005c")
+
+    if not re.search(fr"(^{match.group(1)}\s|{match.group(1)}!?$)", string):
         return
-    if "thank" in match.string or re.search(r"(^ty|ty$)", match.string):
+    if not re.search(fr"(?i)(^({name_list})\s|({name_list})!?$)", string):
+        return
+    if "thank" in match.string or re.search(r"(^ty|ty$)", string):
         await event.reply("You're welcome!")
         return
 
-    await event.reply(f"{match.group(1)} too!")    # "Love you too!"
+    content = (match.group(1)).rstrip("!")
+    await event.reply(f"{content} too!")    # "Love you too!"
 
 
 @borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
