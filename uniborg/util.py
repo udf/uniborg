@@ -54,7 +54,10 @@ async def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
     )
 
 
-def edit_blacklist(group, blacklist=set(), remove=False):
+def edit_blacklist(group, blacklist=None, remove=False):
+    if blacklist is None:
+        blacklist = set()
+
     if not remove:
         blacklist.add(group)
     else:
