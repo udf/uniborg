@@ -1,4 +1,6 @@
-"""Downloads SFW `v.reddi.it` videos, and sends them back as a video.
+"""v.redd.it Downloader
+
+Downloads SFW `v.reddi.it` videos, and sends them back as a video.
 """
 
 import os

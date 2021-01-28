@@ -1,4 +1,6 @@
-r"""Adding "yes or no" to the end of your message will result in a yes or no answer from the bot.
+r"""Yes...  Or No?
+
+Adding "yes or no" to the end of your message will result in a yes or no answer from the bot.
 Also supports "y/n", and other alternatives.
 
 pattern:  `(?i)(yes|y)(/| or )(no|n)\??$`

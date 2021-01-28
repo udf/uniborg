@@ -1,4 +1,6 @@
-r"""Converts Minecraft blocks to stacks, stacks to blocks, and stacks and blocks to shulker boxes.
+r"""Mincraft Counter:  Stackify
+
+Converts Minecraft blocks to stacks, stacks to blocks, and stacks and blocks to shulker boxes.
 Examples:
 • 635 blocks
 • 635 blocks in/as stacks

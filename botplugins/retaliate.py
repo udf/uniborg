@@ -1,4 +1,6 @@
-"""If you say "love you botname/username" the bot will respond with "love you too!"
+"""Retaliate
+
+If you say "love you botname/username" the bot will respond with "love you too!"
 It also works with other words, like "fuck", "screw", "damn"
 
 Limits to once every 30 seconds.

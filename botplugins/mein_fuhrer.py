@@ -1,6 +1,12 @@
-r"""When a user mentions Hitler, or the Führer, the bot will respond with one of a few messages.
+r"""Mein Führer!
 
+When a user mentions Hitler, or the Führer, the bot will respond with one of a few stickers.
 Limited to once a minute.
+
+This is meant as a joke, mainly to relieve tension in heated arguments.
+In no way do we support Hitler's or the Nazi party's ideals.
+
+
 
 pattern:  `(?i)\b(hitler|f[uü]hrer)\b"` __(global)__
 """

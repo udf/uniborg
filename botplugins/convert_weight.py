@@ -1,4 +1,6 @@
-r"""Convert weights to other common weights. 
+r"""Convert Weight
+
+Convert weights to other common weights. 
 Plugin gets triggered by a standalone message in the form of `{number} {weight1} in/to {weight2}`
 
 Use /weights to list accepted weight units.

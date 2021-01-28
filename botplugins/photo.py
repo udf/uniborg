@@ -1,4 +1,6 @@
-"""When an image file is sent to the bot, it will respond with a compressed preview of the file.
+"""File to Photo
+
+When an image file is sent to the bot, it will respond with a compressed preview of the file.
 It will only respond to image files under 15 MB (15000000 bytes).
 """
 

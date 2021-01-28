@@ -1,4 +1,6 @@
-"""Slaps a user the sender replies to, or if there's no reply the sender gets slapped.
+"""Slap!
+
+Slaps a user the sender replies to, or if there's no reply the sender gets slapped.
 10 second cooldown.
 
 pattern: `pattern=r"/(?:slap|kicc)(@\S+)?$`

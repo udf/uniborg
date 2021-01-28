@@ -1,4 +1,6 @@
-r"""Convert distances to other common distances. 
+r"""Convert Distances
+
+Convert distances to other common distances. 
 Plugin gets triggered by a standalone message in the form of `{number} {distance1} in/to {distance2}`
 
 Use /distances to list accepted weight units.

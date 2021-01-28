@@ -1,4 +1,4 @@
-"""Dice roll
+"""Dice Roll
 
 Will roll a __x__ sided dice __n__ times.
 Examples:

@@ -1,4 +1,6 @@
-"""Converts celsius to fahrenheit and back.  Example:
+"""Convert Temperature
+
+Converts celsius to fahrenheit and back.  Example:
 "5°C in degrees f"
 Accepts variations of "°C", for example "c", "degrees Celsius", or "degrees C".
 Case insensitive.
