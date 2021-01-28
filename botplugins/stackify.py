@@ -18,7 +18,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 def plural(number, stupid_plural=False):
@@ -37,6 +37,10 @@ def plural(number, stupid_plural=False):
 )
 async def stackify(event):
     """First calcuate how many full stacks, then the remainder."""
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
 
     m = event.pattern_match
 
@@ -58,6 +62,10 @@ async def stackify(event):
     forwards=False)
 )
 async def blockify(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     m = event.pattern_match
 
     stacks = int(m.group(1))
@@ -82,6 +90,10 @@ async def blockify(event):
     forwards=False)
 )
 async def shulkerify(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     m = event.pattern_match
 
     amount = int(m.group(1))
@@ -109,3 +121,15 @@ async def shulkerify(event):
     reply_msg = ", and".join(reply_msg.rsplit(",", 1))
 
     await event.reply(reply_msg + "`")
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

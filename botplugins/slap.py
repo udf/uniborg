@@ -6,7 +6,7 @@ pattern: `pattern=r"/(?:slap|kicc)(@\S+)?$`
 from asyncio import sleep
 from random import choice
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 slap_list = storage.slap_list or [
@@ -76,6 +76,10 @@ async def random_slap(event, slapper, slapee):
 
 @borg.on(borg.admin_cmd(r"aslap ((?:\S+ ?)+)"))
 async def add_slap(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     new_slap = event.pattern_match.group(1)
     if not "{slapee}" in new_slap:
         msg = await event.reply("Requires a slapee")
@@ -91,6 +95,10 @@ async def add_slap(event):
 @borg.on(borg.cmd(r"(?:slap|kicc)$"))
 @cooldown(10)
 async def slap(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     me = await event.client.get_me()
     sender = await event.get_sender()
     if not event.is_reply:
@@ -101,3 +109,15 @@ async def slap(event):
         slapee = await (await event.get_reply_message()).get_sender()
     mention_slapee = f"[{slapee.first_name}](tg://user?id={slapee.id})"
     await event.respond(await random_slap(event, slapper, mention_slapee))
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

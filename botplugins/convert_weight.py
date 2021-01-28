@@ -9,7 +9,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 units = {
@@ -33,6 +33,10 @@ async def is_plural(unit):
     pattern=r"(?i)^(\d+(?:[\.,]\d+)?)? ?(k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?) (?:to|in) (k?g|ton(?:ne)?s?|lbs|oz|st(?:one)?)$"
 ))
 async def weight(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     m = event.pattern_match
     value = m.group(1)
 
@@ -50,5 +54,21 @@ async def weight(event):
 @borg.on(borg.cmd(r"weights$"))
 @cooldown(60)
 async def list_weights(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     text = f"**List of supported weights:**\n" + ", ".join(sorted(units.keys()))
     await event.reply(text)
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

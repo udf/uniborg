@@ -9,7 +9,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 units = {
@@ -62,6 +62,10 @@ def plural(unit, amount):
     pattern=r"(?i)(\d+(?:[\.,]\d+)?)? ?((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly)) (?:to|in) ((?:[ckm]?m(?:et(?:er|re)s?)?|inch(?:es)?|f[oe]+t|(?:banana|yard|mile|parsec)s?|au|ly))$"
 ))
 async def distance(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     m = event.pattern_match
     value = m.group(1)
 
@@ -86,5 +90,21 @@ async def distance(event):
 @borg.on(borg.cmd(r"distances$"))
 @cooldown(60)
 async def list_distances(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     text = f"**List of supported distance units:**\n" + ", ".join(sorted(units.keys()))
     await event.reply(text)
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

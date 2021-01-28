@@ -7,6 +7,7 @@ pattern:  `(?i)(yes|y)(/| or )(no|n)\??$`
 import re
 from random import choice
 from telethon import events
+from uniborg.util import edit_blacklist
 
 
 # Yes or no
@@ -14,4 +15,20 @@ from telethon import events
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)(yes|y)(/| or )(no|n)\??$").search, forwards=False))
 async def yes_or_no(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     await event.reply(choice(("Yes.", "No.")))
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

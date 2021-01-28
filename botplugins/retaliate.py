@@ -11,7 +11,7 @@ patterns:
 
 import re
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 # love and hate
@@ -23,6 +23,10 @@ from uniborg.util import cooldown
     pattern=re.compile(r"(?i)(thank(?:s| you|u+)|ty)").search, forwards=False))
 @cooldown(10)
 async def retaliate(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     me = await event.client.get_me()
     name = me.first_name
     fname = re.sub(r"\W.+", "", name)
@@ -36,3 +40,15 @@ async def retaliate(event):
         return
 
     await event.reply(f"{match.group(1)} too!")    # "Love you too!"
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

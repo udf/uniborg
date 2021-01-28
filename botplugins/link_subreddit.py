@@ -11,6 +11,7 @@ import re
 import requests
 from telethon import events
 from urllib.parse import urljoin
+from uniborg.util import edit_blacklist
 
 
 # Subreddit
@@ -18,6 +19,10 @@ from urllib.parse import urljoin
                     r"(?i)(?:^|\s)/?(r/[\w_-]{3,21})(/(?:top|best|new|hot|rising|gilded|controversial|wiki(?:/\S+)?))?\b"
                 ).findall))
 async def link_subreddit(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     subreddits = []
     msg = await event.reply("Checking...")
     for s in event.pattern_match:
@@ -35,3 +40,15 @@ async def link_subreddit(event):
     link_bool = ".np" not in event.raw_text and len(subreddits) < 2
 
     await msg.edit(bullet + reply_msg, link_preview=link_bool)
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

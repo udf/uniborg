@@ -10,13 +10,17 @@ pattern: `/roll@bot_username? ((?:\d*d\d+\s*)+)$`
 
 import re
 from random import randint
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 from telethon import client, events, errors
 
 
 @borg.on(borg.cmd(r"roll ((?:\d*d\d+\s*)+)$"))
 @cooldown(10)
 async def on_roll(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     match = event.pattern_match.group(1)
 
     dice_pattern = r"(\d*)d(\d+)" # the pattern to apply to m.group(2)
@@ -67,3 +71,15 @@ async def on_roll(event):
     except errors.MessageTooLongError:
         await event.respond(f"**Total =** `{total}`\n"
                             + "Tip:  Message was too long, try rolling less dice next time")
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

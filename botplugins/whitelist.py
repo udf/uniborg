@@ -5,8 +5,8 @@ Only stay in groups in the whitelist
 
 
 from asyncio import sleep
-from telethon import client, events, errors, utils
 from uniborg.util import cooldown
+from telethon import client, events, errors, utils
 
 
 whitelist = storage.whitelist or {}

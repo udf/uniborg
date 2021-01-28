@@ -54,6 +54,15 @@ async def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
     )
 
 
+def edit_blacklist(group, blacklist=set(), remove=False):
+    if not remove:
+        blacklist.add(group)
+    else:
+        blacklist.discard(group)
+
+    return blacklist
+
+
 async def is_read(borg, entity, message, is_out=None):
     """
     Returns True if the given message (or id) has been read

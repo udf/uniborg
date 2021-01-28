@@ -13,7 +13,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 from time import time, gmtime, strftime
 from currency_converter import CurrencyConverter
 
@@ -39,6 +39,10 @@ def update_currencies():
 @borg.on(events.NewMessage(
     pattern=r"(?i)^(\d{1,9}|\d{1,9}[\.,]\d\d?)? ?([a-z]{3}) (?:to|in) ([a-z]{3})$"))
 async def currency(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     update_currencies()
     value = event.pattern_match.group(1)
 
@@ -61,6 +65,10 @@ async def currency(event):
 @borg.on(borg.cmd(r"currencies$"))
 @cooldown(60)
 async def list_currencies(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     update_currencies()
 
     currency_list = ", ".join(sorted(c.currencies))
@@ -69,3 +77,15 @@ async def list_currencies(event):
             \n\nFor a detailed list of supported currencies [click here.]({link}) \
             \nLast updated:  `{update_timestamp}`"
     await event.reply(text, link_preview=False)
+
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")

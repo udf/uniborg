@@ -14,7 +14,7 @@ from random import randint, choice
 import concurrent.futures
 import re
 from telethon import events
-from uniborg.util import downscale
+from uniborg.util import downscale, edit_blacklist
 
 
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -120,6 +120,10 @@ async def on_start_vid(event):
                                     r"(?i)(?:^|\s)((?:https?\://)?v\.redd\.it/\w+)").findall
                                     ))
 async def on_vreddit(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     # Check if the message is forwarded from self
     fwd = event.forward
 
@@ -128,3 +132,14 @@ async def on_vreddit(event):
     else:
         await vreddit(event, event.pattern_match)
 
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")
