@@ -135,4 +135,4 @@ async def unload():
         await reset_bio()
 
 
-main_loop = asyncio.ensure_future(main())
+main_loop = asyncio.create_task(main())
