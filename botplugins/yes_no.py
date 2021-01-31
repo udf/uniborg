@@ -44,7 +44,7 @@ answers = [
 
 
 # Yes or no
-# Matches "y/n" "yes or no" "yes/no?" etc
+# Matches "y/n" "yes or no", "yes/no?", "/8ball" etc
 @borg.on(events.NewMessage(
     pattern=re.compile(r"(?i)(yes|y)(/| or )(no|n)\??$").search, forwards=False))
 @borg.on(borg.cmd(r"8ball( .+)?"))
