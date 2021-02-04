@@ -60,9 +60,11 @@ async def check_np(session):
         track = json["recenttracks"]["track"][0]
 
     if "@attr" in track and track["@attr"]["nowplaying"]:
-        artist = json["recenttracks"]["track"][0]["artist"]["#text"]
-        title = json["recenttracks"]["track"][0]["name"]
+        artist = track["artist"]["#text"]
+        title = track["name"]
         return f"{artist} - {title}"
+
+    return None
 
 
 @borg.on(borg.cmd(r"s(?:et)?b(?:io)? ?([pbmds])? (.+)"))
@@ -113,24 +115,20 @@ async def send_bio(event):
 
 
 async def main():
-    try:
-        async with aiohttp.ClientSession() as session:
-            while True:
-                await asyncio.sleep(15)
-                np = await check_np(session)
+    async with aiohttp.ClientSession() as session:
+        while True:
+            await asyncio.sleep(15)
+            np = await check_np(session)
 
-                if not np:
-                    await reset_bio()
-                    await asyncio.sleep(15)
-                    continue
-                else:
-                    curr_bio = await check_bio()
-                    new_bio = f"Listening to " + np
-                    await update_bio(new_bio, curr_bio)
-                    continue
-    except Exception as e:
-        print(e)
-        await client.send_message(-1001131472162, e)
+            if not np:
+                await reset_bio()
+                await asyncio.sleep(15)
+                continue
+            else:
+                curr_bio = await check_bio()
+                new_bio = f"Listening to " + np
+                await update_bio(new_bio, curr_bio)
+                continue
 
 
 if not fm_api_key:
