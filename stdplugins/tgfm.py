@@ -17,6 +17,9 @@ bio = storage.bio or {"prefix": "", "middle": "", "suffix": ""}
 fm_api_key = storage.fm_api_key or ""
 username = storage.fm_username or "qwertyspace"
 
+import logging
+logging.basicConfig(level=logging.WARNING)
+
 
 async def check_bio():
     full = await borg(GetFullUserRequest("me"))
@@ -110,18 +113,24 @@ async def send_bio(event):
 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
-        while True:
-            await asyncio.sleep(10)
-            np = await check_np(session)
+    try:
+        async with aiohttp.ClientSession() as session:
+            while True:
+                await asyncio.sleep(15)
+                np = await check_np(session)
 
-            if not np:
-                await reset_bio()
-                await asyncio.sleep(10)
-            else:
-                curr_bio = await check_bio()
-                new_bio = f"Listening to " + np
-                await update_bio(new_bio, curr_bio)
+                if not np:
+                    await reset_bio()
+                    await asyncio.sleep(15)
+                    continue
+                else:
+                    curr_bio = await check_bio()
+                    new_bio = f"Listening to " + np
+                    await update_bio(new_bio, curr_bio)
+                    continue
+    except Exception as e:
+        print(e)
+        await client.send_message(-1001131472162, e)
 
 
 if not fm_api_key:
@@ -135,4 +144,5 @@ async def unload():
         await reset_bio()
 
 
-main_loop = asyncio.create_task(main())
+loop = asyncio.get_event_loop()
+main_loop = loop.create_task(main())
