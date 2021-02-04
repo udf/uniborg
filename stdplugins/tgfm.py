@@ -27,16 +27,11 @@ async def check_bio():
 
 
 async def reset_bio():
+    await update_bio(bio["middle"])
+
+
+async def update_bio(new_bio):
     curr_bio = await check_bio()
-
-    full_bio = bio["prefix"] + bio["middle"] + bio["suffix"]
-    if full_bio == curr_bio:
-        return
-
-    await borg(UpdateProfileRequest(about=full_bio))
-
-
-async def update_bio(new_bio, curr_bio):
     length = 70 - len(bio["prefix"]) - len(bio["suffix"]) - 1
 
     if len(new_bio) > length:
@@ -125,9 +120,8 @@ async def main():
                 await asyncio.sleep(15)
                 continue
             else:
-                curr_bio = await check_bio()
                 new_bio = f"Listening to " + np
-                await update_bio(new_bio, curr_bio)
+                await update_bio(new_bio)
                 continue
 
 
