@@ -41,12 +41,15 @@ async def quote(event):
     quote["date"] = reply_msg.date
 
     quotes = storage.quotes or {}
-    for q in quotes[chat]:
-        if quote["date"] == q["date"]:
-            msg = await event.reply("Duplicate quote in database")
-            await sleep(10)
-            await msg.delete()
-            return
+    try:
+        for q in quotes[chat]:
+            if quote["date"] == q["date"]:
+                msg = await event.reply("Duplicate quote in database")
+                await sleep(10)
+                await msg.delete()
+                return
+    except KeyError:
+        pass
 
     try:
         quotes[chat].append(quote)
