@@ -36,6 +36,7 @@ async def quote(event):
 
     quote = {}
 
+    quote["id"] = str(reply_msg.id)
     quote["text"] = text
     quote["sender"] = sender
     quote["date"] = reply_msg.date
@@ -43,7 +44,7 @@ async def quote(event):
     quotes = storage.quotes or {}
     try:
         for q in quotes[chat]:
-            if quote["date"] == q["date"]:
+            if quote["id"] == q["id"]:
                 msg = await event.reply("Duplicate quote in database")
                 await sleep(10)
                 await msg.delete()
@@ -57,7 +58,7 @@ async def quote(event):
         quotes[chat] = [quote]
     storage.quotes = quotes
 
-    await event.respond("Quote saved")
+    await event.respond(f"Quote saved!  (ID:  `{reply_msg.id}`)")
 
 
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
@@ -70,18 +71,27 @@ async def recall(event):
 
     match_quotes = []
     quotes = storage.quotes or {}
+
+    try:
+        quotes[chat]
+    except KeyError:
+        return
+
     if not phrase:
         match_quotes = quotes[chat]
     else:
         phrase = phrase.lower()
         for q in quotes[chat]:
+            id = q["id"]
             text = q["text"].lower()
             sender = q["sender"]
             first_name = sender.first_name.lower()
             last_name = (sender.last_name or "").lower()
 
+            if phrase == id:
+                match_quotes.append(q)
+                break
             if phrase in text:
-                print(q["text"])
                 match_quotes.append(q)
                 continue
             if phrase in first_name:
@@ -96,16 +106,16 @@ async def recall(event):
         return
     quote = choice(match_quotes)
 
+    id = quote["id"]
     text = quote["text"]
     sender = quote["sender"]
     sender_name = f"{sender.first_name} {sender.last_name or ''}"
     msg_date = (quote["date"]).strftime("%B, %Y")
 
     format_quote = f"<b>{text}</b>"
+    format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
+    format_quote += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
+    # format_quote += f" #qid{id}"
+
     msg = await event.respond(format_quote, parse_mode="html")
-
-    await sleep(1)
-
-    format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, {msg_date}</i>"
-    await msg.edit(format_quote, parse_mode="html")
 
