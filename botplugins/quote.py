@@ -140,8 +140,12 @@ async def recall_quote(event):
     msg_date = (quote["date"]).strftime("%B, %Y")
 
     format_quote = f"<b>{text}</b>"
+    msg = await event.respond(format_quote, parse_mode="html")
+
+    sleep(0.2)
+
     format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
     format_quote += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
 
-    msg = await event.respond(format_quote, parse_mode="html")
+    await msg.edit(format_quote, parse_mode="html")
 
