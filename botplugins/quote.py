@@ -26,7 +26,7 @@ async def add_quote(event):
     if reply_msg.fwd_from:
         return
 
-    text = html.escape(reply_msg.text)
+    text = reply_msg.text
     if not text:
         return
 
