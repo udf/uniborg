@@ -15,7 +15,7 @@ import html
 from asyncio import sleep
 from random import choice
 from telethon import types
-from uniborg.util import cooldown
+from uniborg.util import cooldown, edit_blacklist
 
 
 @cooldown(60)
