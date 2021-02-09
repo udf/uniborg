@@ -7,17 +7,18 @@ Quotes are recalled with the text, the sender's name, and date it was originally
 patterns:
  • `q(uote)?|cite`
  • `(r(ecall)?|(get|fetch)quote)(?: ([\s\S]+))?`
+ADMIN ONLY:
+ • `rmq(uote)? (\d+)(?:\:(\d+))?`
 """
 
+import html
 from random import choice
 from asyncio import sleep
 from telethon import types
 
-import logging
-logging.basicConfig(level=logging.WARNING)
 
 @borg.on(borg.cmd(r"q(uote)?|cite"))
-async def quote(event):
+async def add_quote(event):
     if event.is_private and not event.is_reply:
         return
 
@@ -25,7 +26,7 @@ async def quote(event):
     if reply_msg.fwd_from:
         return
 
-    text = reply_msg.text
+    text = html.escape(reply_msg.text)
     if not text:
         return
 
@@ -61,8 +62,30 @@ async def quote(event):
     await event.respond(f"Quote saved!  (ID:  `{reply_msg.id}`)")
 
 
+@borg.on(borg.admin_cmd(r"rmq(?:uote)?", r"(\d+)(?:\:(\-?\d+))?"))
+async def rm_quote(event):
+    match = event.pattern_match
+    query_id = match.group(1)
+    chat = match.group(2) or str(event.chat_id)
+    print(query_id)
+
+    quotes = storage.quotes or None
+    try:
+        if quotes is not None:
+            for q in quotes[chat]:
+                if query_id == q["id"]:
+                    quotes[chat].remove(q)
+                    storage.quotes = quotes
+                    await event.reply(f"Quote `{query_id}` in chat: `{chat}` removed")
+                    return
+    except KeyError:
+        pass
+
+    await event.reply(f"No quote with ID `{query_id}`")
+
+
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
-async def recall(event):
+async def recall_quote(event):
     if event.is_private:
         return
 
@@ -103,19 +126,22 @@ async def recall(event):
 
 
     if not match_quotes:
+        msg = await event.reply(f"No quotes matching query:  `{phrase}`")
+        await sleep(10)
+        await msg.delete()
         return
+
     quote = choice(match_quotes)
 
     id = quote["id"]
-    text = quote["text"]
+    text = html.escape(quote["text"])
     sender = quote["sender"]
-    sender_name = f"{sender.first_name} {sender.last_name or ''}"
+    sender_name = html.escape(f"{sender.first_name} {sender.last_name or ''}")
     msg_date = (quote["date"]).strftime("%B, %Y")
 
     format_quote = f"<b>{text}</b>"
     format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
     format_quote += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
-    # format_quote += f" #qid{id}"
 
     msg = await event.respond(format_quote, parse_mode="html")
 
