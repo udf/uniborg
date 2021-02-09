@@ -17,6 +17,7 @@ from asyncio import sleep
 from telethon import types
 
 
+@cooldown(60)
 @borg.on(borg.cmd(r"q(uote)?|cite"))
 async def add_quote(event):
     blacklist = storage.blacklist or set()
@@ -88,6 +89,7 @@ async def rm_quote(event):
     await event.reply(f"No quote with ID `{query_id}`")
 
 
+@cooldown(60)
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
 async def recall_quote(event):
     blacklist = storage.blacklist or set()
