@@ -49,7 +49,7 @@ async def _(event):
                     who
                 ))).participant, 'rank', None)
 
-    await event.respond(get_who_string(who, event.chat_id, rank), parse_mode='html')
+    await event.edit(get_who_string(who, event.chat_id, rank), parse_mode='html')
 
 
 @borg.on(borg.cmd(r"members"))
