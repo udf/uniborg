@@ -12,9 +12,10 @@ ADMIN ONLY:
 """
 
 import html
-from random import choice
 from asyncio import sleep
+from random import choice
 from telethon import types
+from uniborg.util import cooldown
 
 
 @cooldown(60)
