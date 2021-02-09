@@ -19,6 +19,10 @@ from telethon import types
 
 @borg.on(borg.cmd(r"q(uote)?|cite"))
 async def add_quote(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     if event.is_private and not event.is_reply:
         return
 
@@ -86,6 +90,10 @@ async def rm_quote(event):
 
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
 async def recall_quote(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
     if event.is_private:
         return
 
@@ -149,3 +157,14 @@ async def recall_quote(event):
 
     await msg.edit(format_quote, parse_mode="html")
 
+
+@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
+async def blacklist(event):
+    m = event.pattern_match
+    shortname = m["shortname"]
+
+    if shortname not in __file__:
+        return
+
+    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
+    await event.reply("Updated blacklist.")
