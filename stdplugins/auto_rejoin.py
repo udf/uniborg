@@ -12,8 +12,8 @@ from telethon.errors import ChannelPrivateError, ChannelBannedError
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-# How often to fetch the full list of blocked users
-REFETCH_TIME = 60 * 2
+# How often to attempt to rejoin
+REFETCH_TIME = 90
 chat = "@telethonofftopic"
 
 
