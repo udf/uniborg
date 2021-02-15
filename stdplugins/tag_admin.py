@@ -7,12 +7,12 @@ from telethon import events
 from telethon.tl.types import ChannelParticipantsAdmins
 
 
-@borg.on(events.NewMessage(pattern=r"[\.@]admins?", outgoing=True))
+@borg.on(events.NewMessage(pattern=r"[\.@]admins?$", outgoing=True))
 async def _(event):
-    reply_msg = "@admin"
+    reply_msg = "@\u2063admin"
 
     async for a in borg.iter_participants(event.chat_id, filter=ChannelParticipantsAdmins):
-        if a.bot:
+        if a.bot or a.deleted:
             continue
         reply_msg += f"[\u2063](tg://user?id={a.id})"
 
