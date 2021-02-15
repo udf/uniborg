@@ -7,7 +7,7 @@ from telethon import events
 from telethon.tl.types import ChannelParticipantsAdmins
 
 
-@borg.on(events.NewMessage(pattern=r"[\.@]admins?"))
+@borg.on(events.NewMessage(pattern=r"[\.@]admins?", outgoing=True))
 async def _(event):
     reply_msg = "@admin"
 
