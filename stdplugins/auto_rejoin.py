@@ -9,8 +9,6 @@ from telethon.tl.functions.messages import SaveDraftRequest
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.errors import ChannelPrivateError, ChannelBannedError
 
-import logging
-logging.basicConfig(level=logging.WARNING)
 
 # How often to attempt to rejoin
 REFETCH_TIME = 90
