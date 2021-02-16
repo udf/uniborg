@@ -153,6 +153,8 @@ def parse(message, old_entities=None):
 @borg.on(events.MessageEdited(outgoing=True))
 @borg.on(events.NewMessage(outgoing=True))
 async def reparse(event):
+    if not event.raw_text:
+        return
     old_entities = event.message.entities or []
     parser = partial(parse, old_entities=old_entities)
     message, msg_entities = await borg._parse_message_text(event.raw_text, parser)
