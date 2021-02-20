@@ -52,7 +52,10 @@ async def check_np(session):
 
     async with session.get(api, params=params) as resp:
         json = await resp.json()
-        track = json["recenttracks"]["track"][0]
+        try:
+            track = json["recenttracks"]["track"][0]
+        except KeyError:
+            return None
 
     if "@attr" in track and track["@attr"]["nowplaying"]:
         artist = track["artist"]["#text"]
