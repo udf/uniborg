@@ -109,6 +109,7 @@ async def send_bio(event):
     await event.edit("**Bio:**  " + "".join(bio.values()))
 
 
+import traceback
 async def main():
     try:
         async with aiohttp.ClientSession() as session:
@@ -124,8 +125,8 @@ async def main():
                     new_bio = f"Listening to " + np
                     await update_bio(new_bio)
                     continue
-    except Exception as e:
-        logger.WARNING(e)
+    except Exception:
+        traceback.print_exc()
 
 
 if not fm_api_key:
