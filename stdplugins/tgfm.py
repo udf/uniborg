@@ -110,19 +110,22 @@ async def send_bio(event):
 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
-        while True:
-            await asyncio.sleep(15)
-            np = await check_np(session)
-
-            if not np:
-                await reset_bio()
+    try:
+        async with aiohttp.ClientSession() as session:
+            while True:
                 await asyncio.sleep(15)
-                continue
-            else:
-                new_bio = f"Listening to " + np
-                await update_bio(new_bio)
-                continue
+                np = await check_np(session)
+
+                if not np:
+                    await reset_bio()
+                    await asyncio.sleep(15)
+                    continue
+                else:
+                    new_bio = f"Listening to " + np
+                    await update_bio(new_bio)
+                    continue
+    except Exception as e:
+        logger.WARNING(e)
 
 
 if not fm_api_key:
