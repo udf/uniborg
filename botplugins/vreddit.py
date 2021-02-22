@@ -134,14 +134,6 @@ async def on_vreddit(event):
     else:
         await vreddit(event, event.pattern_match)
 
-
 @borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist(event):
-    m = event.pattern_match
-    shortname = m["shortname"]
-
-    if shortname not in __file__:
-        return
-
-    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
-    await event.reply("Updated blacklist.")
+async def blacklist_caller(event):
+    storage.blacklist = await blacklist(event, storage.blacklist)
