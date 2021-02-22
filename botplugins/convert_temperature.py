@@ -12,7 +12,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import edit_blacklist
+from uniborg.util import blacklist
 
 
 #Convert Celsius to Fahrenheit
@@ -38,6 +38,6 @@ async def f_to_c(event):
     sum = round(((f - 32) * 0.55555555555), 2)
     await event.reply(f"**{f} °F is:**  `{sum} °C`")
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

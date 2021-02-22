@@ -8,7 +8,7 @@ pattern: `pattern=r"/(?:slap|kicc)(@\S+)?$`
 from asyncio import sleep
 from random import choice
 from telethon import events
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 
 
 slap_list = storage.slap_list or [
@@ -112,6 +112,6 @@ async def slap(event):
     mention_slapee = f"[{slapee.first_name}](tg://user?id={slapee.id})"
     await event.respond(await random_slap(event, slapper, mention_slapee))
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

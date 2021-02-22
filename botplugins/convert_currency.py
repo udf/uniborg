@@ -15,7 +15,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 from time import time, gmtime, strftime
 from currency_converter import CurrencyConverter
 
@@ -81,6 +81,6 @@ async def list_currencies(event):
     await event.reply(text, link_preview=False)
 
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

@@ -13,7 +13,7 @@ patterns:
 import re
 from random import choice
 from telethon import events
-from uniborg.util import edit_blacklist
+from uniborg.util import blacklist
 
 
 answers = [
@@ -60,6 +60,6 @@ async def yes_or_no(event):
 
     await event.reply(choice(answers))
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

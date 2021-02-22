@@ -170,6 +170,6 @@ async def recall_quote(event):
     await msg.edit(format_quote, parse_mode="html")
 
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

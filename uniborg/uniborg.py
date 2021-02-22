@@ -138,3 +138,7 @@ class Uniborg(TelegramClient):
 
     def admin_cmd(self, command, pattern=None):
         return self.cmd(command, pattern, admin_only=True)
+
+    def blacklist_plugin(self, blacklist=None):
+        return self.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)")
+

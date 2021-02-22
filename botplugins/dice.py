@@ -10,7 +10,7 @@ pattern: `/roll@bot_username? ((?:\d*d\d+\s*)+)$`
 
 import re
 from random import randint
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 from telethon import client, events, errors
 
 
@@ -72,6 +72,6 @@ async def on_roll(event):
         await event.respond(f"**Total =** `{total}`\n"
                             + "Tip:  Message was too long, try rolling less dice next time")
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

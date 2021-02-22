@@ -11,7 +11,7 @@ patterns:
 """
 
 from telethon import events
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 
 
 units = {
@@ -99,6 +99,6 @@ async def list_distances(event):
     text = f"**List of supported distance units:**\n" + ", ".join(sorted(units.keys()))
     await event.reply(text)
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

@@ -14,7 +14,7 @@ pattern:  `(?i)\b(hitler|f[uü]hrer)\b"` __(global)__
 import re
 from random import choice
 from telethon import events
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 
 responses = ["CAADAgADWgADraG3CP76-OQcP7msAg", # Tanya
              "CAADBAADkQYAAhgwqgVYHov8PqiL9gI", # The Professor
@@ -33,6 +33,6 @@ async def mein_fuhrer(event):
 
     await event.reply(file=choice(responses))
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)

@@ -16,7 +16,7 @@ from random import randint, choice
 import concurrent.futures
 import re
 from telethon import events
-from uniborg.util import downscale, edit_blacklist
+from uniborg.util import downscale, blacklist
 
 
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -134,6 +134,6 @@ async def on_vreddit(event):
     else:
         await vreddit(event, event.pattern_match)
 
-@borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist_caller(event):
+@borg.on(borg.blacklist_plugin())
+async def on_blacklist(event):
     storage.blacklist = await blacklist(event, storage.blacklist)
