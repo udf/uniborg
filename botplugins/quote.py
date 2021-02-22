@@ -15,17 +15,27 @@ import html
 from asyncio import sleep
 from random import choice
 from telethon import types
-from uniborg.util import cooldown, edit_blacklist
+from uniborg.util import cooldown, blacklist
 
 
-@cooldown(60)
 @borg.on(borg.cmd(r"q(uote)?|cite"))
+@cooldown(15)
 async def add_quote(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
         return
 
-    if event.is_private and not event.is_reply:
+    if event.is_private:
+        return
+
+    chat = str(event.chat_id)
+    if not event.is_reply:
+        quotes = storage.quotes or None
+        amnt = len(quotes[chat])
+
+        await event.reply(
+            f"There are `{amnt}` quotes saved for this group.  \
+            \nReply to a message with `/quote` to cite that message.")
         return
 
     reply_msg = await event.get_reply_message()
@@ -36,7 +46,6 @@ async def add_quote(event):
     if not text:
         return
 
-    chat = str(event.chat_id)
     sender = await reply_msg.get_sender()
     if isinstance(sender, types.Channel) or sender.bot:
         return
@@ -90,8 +99,8 @@ async def rm_quote(event):
     await event.reply(f"No quote with ID `{query_id}`")
 
 
-@cooldown(60)
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
+@cooldown(10)
 async def recall_quote(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
@@ -162,12 +171,5 @@ async def recall_quote(event):
 
 
 @borg.on(borg.admin_cmd(r"(r)?blacklist", r"(?P<shortname>\w+)"))
-async def blacklist(event):
-    m = event.pattern_match
-    shortname = m["shortname"]
-
-    if shortname not in __file__:
-        return
-
-    storage.blacklist = edit_blacklist(event.chat_id, storage.blacklist, m.group(1))
-    await event.reply("Updated blacklist.")
+async def blacklist_caller(event):
+    storage.blacklist = await blacklist(event, storage.blacklist)

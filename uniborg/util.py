@@ -4,6 +4,7 @@
 
 import re
 import signal
+import inspect
 import functools
 from time import time
 from PIL import Image
@@ -52,6 +53,31 @@ async def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
         executor,
         lambda: wrapped(fp, max_w, max_w, format)
     )
+
+
+async def blacklist(event, blacklist=None):
+    if blacklist is None:
+        blacklist = set()
+
+    m = event.pattern_match
+    shortname = m["shortname"]
+    remove = m.group(1)
+    file_name = inspect.currentframe().f_back.f_code.co_filename
+
+    if shortname not in file_name:
+        return
+
+    group = event.chat_id
+    if not remove:
+        blacklist.add(group)
+    else:
+        blacklist.discard(group)
+
+    msg = await event.respond("Updated blacklist.")
+    await asyncio.sleep(5)
+    await msg.delete()
+
+    return blacklist
 
 
 def edit_blacklist(group, blacklist=None, remove=False):
