@@ -39,7 +39,7 @@ async def add_quote(event):
         return
 
     reply_msg = await event.get_reply_message()
-    if reply_msg.fwd_from:
+    if reply_msg.fwd_from is None:
         return
 
     text = reply_msg.text
@@ -82,7 +82,6 @@ async def rm_quote(event):
     match = event.pattern_match
     query_id = match.group(1)
     chat = match.group(2) or str(event.chat_id)
-    print(query_id)
 
     quotes = storage.quotes or None
     try:
