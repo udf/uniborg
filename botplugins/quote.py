@@ -39,7 +39,7 @@ async def add_quote(event):
         return
 
     reply_msg = await event.get_reply_message()
-    if reply_msg.fwd_from is None:
+    if reply_msg.forward:
         return
 
     text = reply_msg.text
