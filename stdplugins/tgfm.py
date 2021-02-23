@@ -54,7 +54,7 @@ async def check_np(session):
         json = await resp.json()
         try:
             track = json["recenttracks"]["track"][0]
-        except KeyError, IndexError:
+        except (KeyError, IndexError):
             return None
 
     if "@attr" in track and track["@attr"]["nowplaying"]:
