@@ -34,15 +34,16 @@ async def add_quote(event):
         amnt = len(quotes[chat])
 
         await event.reply(
-            f"There are `{amnt}` quotes saved for this group.  \
-            \nReply to a message with `/quote` to cite that message.")
+            f"There are `{amnt}` quotes saved for this group."
+            + "\nReply to a message with `/quote` to cite that message, "
+            + "and `/recall` to recall.")
         return
 
     reply_msg = await event.get_reply_message()
     if reply_msg.forward:
         return
 
-    text = reply_msg.text
+    text = reply_msg.raw_text
     if not text:
         return
 
