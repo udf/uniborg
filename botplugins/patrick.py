@@ -11,7 +11,7 @@ from uniborg.util import cooldown, blacklist, chance
 
 @borg.on(events.NewMessage(pattern=r"(?i)is\s+this\s+", func=lambda e: not e.is_private))
 @cooldown(10)
-@chance(2)
+@chance(10)
 async def patrick(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
