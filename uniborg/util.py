@@ -11,6 +11,7 @@ from PIL import Image
 from io import BytesIO
 import asyncio
 import concurrent.futures
+from random import randrange
 from collections import defaultdict
 
 
@@ -33,6 +34,21 @@ def cooldown(timeout):
         wrapped.__module__ = function.__module__
         return wrapped
     return wrapper
+
+
+def chance(amount):
+    print("called")
+    def wrapper(function):
+        async def wrapped(event, *args, **kwargs):
+            res = randrange(amount)
+            print(res)
+            if res != 0:
+                return
+            print("yay")
+            await function(event, *args, **kwargs)
+        return wrapped
+    return wrapper
+
 
 
 # Downscale an image so it doesn't look bad
