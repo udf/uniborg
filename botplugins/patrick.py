@@ -1,9 +1,7 @@
-"""Ping!  Pong!
+"""No, this is Patrick!
 
-The bot will reply with the time it took to respond to your command.
-Works in private only
+1 in 10 chance to respond to message starting with "Is this..." with "No, this is Patrick!
 
-pattern: `/ping$`
 """
 
 from telethon import events
@@ -12,7 +10,8 @@ from uniborg.util import cooldown, blacklist, chance
 
 
 @borg.on(events.NewMessage(pattern=r"(?i)is\s+this\s+", func=lambda e: not e.is_private))
-@chance(10)
+@cooldown(10)
+@chance(2)
 async def patrick(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:

@@ -37,15 +37,14 @@ def cooldown(timeout):
 
 
 def chance(amount):
-    print("called")
     def wrapper(function):
         async def wrapped(event, *args, **kwargs):
             res = randrange(amount)
             print(res)
             if res != 0:
                 return
-            print("yay")
             await function(event, *args, **kwargs)
+        wrapped.__module__ = function.__module__
         return wrapped
     return wrapper
 
