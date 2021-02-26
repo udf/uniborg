@@ -40,7 +40,6 @@ def chance(amount):
     def wrapper(function):
         async def wrapped(event, *args, **kwargs):
             res = randrange(amount)
-            print(res)
             if res != 0:
                 return
             await function(event, *args, **kwargs)
