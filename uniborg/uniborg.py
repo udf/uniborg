@@ -120,6 +120,7 @@ class Uniborg(TelegramClient):
         return fut
 
     def cmd(self, command, pattern=None, admin_only=False):
+        command = fr'(?:{command})'
         if self.me.bot:
             command = fr'{command}(?:@{self.me.username})?'
 
