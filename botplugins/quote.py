@@ -18,7 +18,7 @@ from telethon import types
 from uniborg.util import cooldown, blacklist
 
 
-@borg.on(borg.cmd(r"q(uote)?|cite"))
+@borg.on(borg.cmd(r"(q(uote)?|cite)"))
 @cooldown(15)
 async def add_quote(event):
     blacklist = storage.blacklist or set()
