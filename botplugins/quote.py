@@ -130,6 +130,8 @@ async def recall_quote(event):
             sender = q["sender"]
             first_name = sender.first_name.lower()
             last_name = (sender.last_name or "").lower()
+            full_name = f"{first_name} {last_name}"
+            username = sender.username.lower()
 
             if phrase == id:
                 match_quotes.append(q)
@@ -137,10 +139,10 @@ async def recall_quote(event):
             if phrase in text:
                 match_quotes.append(q)
                 continue
-            if phrase in first_name:
+            if phrase in full_name:
                 match_quotes.append(q)
                 continue
-            if phrase in last_name:
+            if phrase in username:
                 match_quotes.append(q)
                 continue
 
