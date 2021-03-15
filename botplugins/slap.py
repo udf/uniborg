@@ -64,7 +64,7 @@ slap_list = [
     "{slapee} was destroyed by {slapper}'s stand.",
     "{slapper} got {slapee}'s Hachikuji lost.",
     "{slapper} stapled {slapee}'s cheek.",
-    "{slapper} unweights {slapee}'s Senjougahara."
+    "{slapper} unweights {slapee}'s Senjougahara.",
     # Misc
     "{slapee} walked off a ledge.",
     "{slapper} sent {slapee} to swim with the fishes.",
