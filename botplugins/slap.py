@@ -11,7 +11,7 @@ from telethon import events
 from uniborg.util import cooldown, blacklist
 
 
-slap_list = storage.slap_list or [
+slap_list = [
     # Minecraft:
     "{slapper} slapped {slapee}!",
     "{slapee} walked into a cactus whilst trying to escape {slapper}.",
@@ -68,30 +68,9 @@ slap_list = storage.slap_list or [
     "{slapee} forgot to breathe at the sight of {slapper}.",
 ]
 
-if not storage.slap_list:
-    storage.slap_list = slap_list
-
 
 async def random_slap(event, slapper, slapee):
     return choice(slap_list).format(slapper=slapper, slapee=slapee)
-
-
-@borg.on(borg.admin_cmd(r"aslap ((?:\S+ ?)+)"))
-async def add_slap(event):
-    blacklist = storage.blacklist or set()
-    if event.chat_id in blacklist:
-        return
-
-    new_slap = event.pattern_match.group(1)
-    if not "{slapee}" in new_slap:
-        msg = await event.reply("Requires a slapee")
-        await sleep(5)
-        await msg.delete()
-        return
-
-    slap_list.append(f"{new_slap}")
-    storage.slap_list = slap_list
-    await event.reply("Added!")
 
 
 @borg.on(borg.cmd(r"(?:slap|kicc)$"))
@@ -111,6 +90,7 @@ async def slap(event):
         slapee = await (await event.get_reply_message()).get_sender()
     mention_slapee = f"[{slapee.first_name}](tg://user?id={slapee.id})"
     await event.respond(await random_slap(event, slapper, mention_slapee))
+
 
 @borg.on(borg.blacklist_plugin())
 async def on_blacklist(event):
