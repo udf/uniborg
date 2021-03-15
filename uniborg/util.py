@@ -36,7 +36,8 @@ def cooldown(timeout):
     return wrapper
 
 
-def chance(amount):
+# 1 in amount chance of running the function
+def chance(amount, lower=1):
     def wrapper(function):
         async def wrapped(event, *args, **kwargs):
             res = randrange(amount)
@@ -46,7 +47,6 @@ def chance(amount):
         wrapped.__module__ = function.__module__
         return wrapped
     return wrapper
-
 
 
 # Downscale an image so it doesn't look bad
