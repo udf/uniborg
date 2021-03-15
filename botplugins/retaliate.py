@@ -42,7 +42,7 @@ async def retaliate(event):
         return
     if not re.search(fr"(?i)(^({name_list})\s|({name_list})!?$)", string):
         return
-    if "thank" in match.string or re.search(r"(^ty|ty$)", string):
+    if "thank" in match.string.lower() or re.search(r"(^ty|ty$)", string):
         await event.reply("You're welcome!")
         return
 
