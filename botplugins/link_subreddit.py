@@ -11,6 +11,7 @@ pattern:  `(?i)(?:[^/\w]|^|\s)/?(r/\w+)(/(?:top|best|new|hot|rising|gilded|contr
 
 import re
 import requests
+from asyncio import sleep
 from telethon import events
 from urllib.parse import urljoin
 from uniborg.util import blacklist
@@ -32,10 +33,21 @@ async def link_subreddit(event):
         subreddit_link = urljoin("https://reddit.com/r/", subreddit)
 
         res = requests.get(subreddit_link)
-        if res.status_code == 404: # don't respond if the subreddit doesn't exist
-            continue
+        try:
+            if res.status_code == 404: # don't respond if the subreddit doesn't exist
+                print(subreddit, res.status_code)
+                continue
+        except:
+            pass
 
         subreddits.append(f"[/r/{subreddit}]({subreddit_link})")
+
+    if not subreddits:
+        await msg.edit("Could not find subreddit.")
+        await sleep(5)
+        await msg.delete()
+
+        return
 
     bullet = "• " if len(subreddits) > 1 else ""
     reply_msg = "\n• ".join(subreddits)
