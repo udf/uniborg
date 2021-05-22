@@ -49,7 +49,7 @@ async def currency(event):
     value = event.pattern_match.group(1)
 
     if not value:
-        value = 1
+        value = "1"
     value = value.replace(",", ".")
 
     fromcur = event.pattern_match.group(2).upper()
