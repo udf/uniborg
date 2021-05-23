@@ -9,6 +9,7 @@ from telethon.utils import add_surrogate
 from telethon.tl.functions.channels import GetParticipantRequest
 from telethon.tl.types import InputPeerChannel, MessageEntityPre, User
 from telethon.tl.tlobject import TLObject
+from telethon.errors.rpcerrorlist import UserNotParticipantError
 import datetime
 
 STR_LEN_MAX = 256
@@ -118,10 +119,13 @@ async def who(event):
                 who = await event.get_chat()
             elif (isinstance(ic, InputPeerChannel) and
                     isinstance(who, User)):
-                participant = (await borg(GetParticipantRequest(
-                    ic,
-                    who
-                ))).participant
+                try:
+                    participant = (await borg(GetParticipantRequest(
+                        ic,
+                        who
+                    ))).participant
+                except UserNotParticipantError:
+                    pass
     yaml_text = yaml_format(who)
     if participant is not None:
         yaml_text += "\n"
