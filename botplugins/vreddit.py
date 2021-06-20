@@ -51,7 +51,6 @@ def compress(f, output, out_thumb):
     print("compressed")
 
 
-
 async def vreddit(event, match):
     vids = []
 
