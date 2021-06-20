@@ -18,17 +18,35 @@ from telethon import events
 from uniborg.util import blacklist
 
 
-@borg.on(borg.cmd(r"nice"))
+@borg.on(borg.cmd(r"(me)?nice"))
 async def return_nice(event):
     nices = storage.nices
+    match = event.pattern_match.string
 
     reply_msg = "<b>Nice</b>"
-    for user in nices:
-        user = nices[user]
+
+    sender = str(event.sender_id)
+    try:
+        if "me" in match:
+            nices = {sender: nices[sender]}
+    except KeyError:
+        msg = await event.reply("No nice found.  Not nice.")
+
+        await sleep(5)
+
+        await msg.delete()
+        try:
+            await event.delete()
+        except:
+            pass
+
+        return
+
+    for user in nices.values():
         name = html.escape(user["name"])
         count = user["count"]
 
-        reply_msg += f"\n{name}: <code>{count}</code>"
+        reply_msg += f"\n{name}:  <code>{count}</code>"
 
     await event.respond(reply_msg, parse_mode="html")
 
@@ -39,7 +57,7 @@ async def nice_blacklist(event):
     id = m.group(2)
     action = m.group(1)
     nice_blacklist = storage.nice_blacklist or set()
-    
+
     if "not" in action:
         nice_blacklist.add(id)
     elif "very" in action:
@@ -68,16 +86,20 @@ async def remove_nice(event):
 
 
 # count nices
-@borg.on(events.NewMessage(pattern=re.compile(r"(?<!/)\bno*i+c+e+\b").findall))
+@borg.on(events.NewMessage(pattern=re.compile(r"(?<!/)\bno*i+c+e+r*\b").findall))
 async def nice(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
+        return
+
+    if event.is_private:
         return
 
     m = event.pattern_match
     sender_id = str(event.sender_id)
     count = len(m)
 
+    nice_blacklist = storage.nice_blacklist or set()
     if sender_id in storage.nice_blacklist:
         return
 
