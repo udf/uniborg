@@ -65,6 +65,10 @@ async def add_quote(event):
                 msg = await event.reply("Duplicate quote in database")
                 await sleep(10)
                 await msg.delete()
+                try:
+                    await event.delete()
+                except:
+                    pass
                 return
     except KeyError:
         pass
@@ -75,10 +79,18 @@ async def add_quote(event):
         quotes[chat] = [quote]
     storage.quotes = quotes
 
-    await event.respond(f"Quote saved!  (ID:  `{reply_msg.id}`)")
+    user = (await event.get_sender()).first_name
+    await event.respond(f"Quote saved by {user}!  (ID:  `{reply_msg.id}`)")
+    try:
+        await sleep(5)
+        await event.delete()
+    except:
+        pass
+
 
 
 @borg.on(borg.admin_cmd(r"rmq(?:uote)?", r"(\d+)(?:\:(\-?\d+))?"))
+@cooldown(5)
 async def rm_quote(event):
     match = event.pattern_match
     query_id = match.group(1)
@@ -94,9 +106,8 @@ async def rm_quote(event):
                     await event.reply(f"Quote `{query_id}` in chat: `{chat}` removed")
                     return
     except KeyError:
-        pass
+        await event.reply(f"No quote with ID `{query_id}`")
 
-    await event.reply(f"No quote with ID `{query_id}`")
 
 
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
@@ -151,6 +162,7 @@ async def recall_quote(event):
         msg = await event.reply(f"No quotes matching query:  `{phrase}`")
         await sleep(10)
         await msg.delete()
+        await event.delete()
         return
 
     quote = choice(match_quotes)
@@ -164,12 +176,18 @@ async def recall_quote(event):
     format_quote = f"<b>{text}</b>"
     msg = await event.respond(format_quote, parse_mode="html")
 
-    await sleep(0.2)
+    await sleep(0.5)
 
     format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
     format_quote += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
 
     await msg.edit(format_quote, parse_mode="html")
+
+    try:
+        await sleep(5)
+        await event.delete()
+    except:
+        pass
 
 
 @borg.on(borg.blacklist_plugin())
