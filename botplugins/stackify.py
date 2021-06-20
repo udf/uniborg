@@ -32,7 +32,7 @@ def plural(number, stupid_plural=False):
         return "s"
 
 
-# Convert blocks to stacks
+# Convert items to stacks
 @borg.on(events.NewMessage(
     pattern=r"(?i)(\d{1,9})(?: blocks(?: (?:in|as) stacks)?)(?: s(16|64))?$",
     forwards=False)
