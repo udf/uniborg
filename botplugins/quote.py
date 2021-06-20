@@ -184,7 +184,7 @@ async def recall_quote(event):
     await msg.edit(format_quote, parse_mode="html")
 
     try:
-        await sleep(5)
+        await sleep(60)
         await event.delete()
     except:
         pass
