@@ -80,9 +80,10 @@ async def add_quote(event):
     storage.quotes = quotes
 
     user = (await event.get_sender()).first_name
-    await event.respond(f"Quote saved by {user}!  (ID:  `{reply_msg.id}`)")
+    await event.respond(f"Quote saved by {user}!  (ID:  `{reply_msg.id}`)",
+                        reply_to=reply_msg)
     try:
-        await sleep(5)
+        await sleep(10)
         await event.delete()
     except:
         pass
