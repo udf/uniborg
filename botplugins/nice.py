@@ -99,7 +99,7 @@ async def nice(event):
     sender_id = str(event.sender_id)
     count = len(m)
 
-    nice_blacklist = storage.nice_blacklist or set()
+    nice_blacklist = storage.nice_blacklist or {}
     if sender_id in nice_blacklist:
         return
 
