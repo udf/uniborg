@@ -10,7 +10,7 @@ import config
 
 logging.basicConfig(level=logging.INFO)
 try:
-    session_name = argv[1]
+    session_name = argv[1].replace(".session", "")
 except IndexError:
     session_name = "stdbot"
 
