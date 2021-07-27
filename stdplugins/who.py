@@ -33,7 +33,7 @@ async def _(event):
         if msg.forward:
           	# FIXME forward privacy memes
             who = await borg.get_entity(
-                msg.forward.from_id or msg.forward.channel_id)
+                msg.forward.sender_id or msg.forward.channel_id)
         else:
             who = await msg.get_sender()
             ic = await event.get_input_chat()

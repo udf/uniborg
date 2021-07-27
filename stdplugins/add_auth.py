@@ -42,7 +42,7 @@ async def on_group_added(e):
     am = e.action_message
     if borg.uid not in getattr(am.action, 'users', []):
         return
-    await on_added(am.from_id, am.to_id)
+    await on_added(am.sender_id, am.to_id)
 
 
 @borg.on(events.NewMessage(pattern=r"\.auth", outgoing=True, func=lambda e: e.is_private))
