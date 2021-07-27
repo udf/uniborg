@@ -1,5 +1,6 @@
 import asyncio
 import time
+from datetime import datetime, timezone, timedelta
 from telethon import events, utils, tl
 from telethon.tl.types import UpdateChannel, InputUserSelf, PeerChannel
 from telethon.tl.functions.channels import GetParticipantRequest
@@ -27,11 +28,17 @@ async def on_update_chan(e):
     entity = e._entities.get(channel_id)
     if isinstance(entity, tl.types.ChannelForbidden):
         return
-    if isinstance(entity, tl.types.Channel) and entity.left:
+    if isinstance(entity, tl.types.Channel) and (entity.left or not entity.broadcast):
         return
     channel = await borg.get_input_entity(channel_id)
     self_participant = await borg(GetParticipantRequest(channel, InputUserSelf()))
     if not hasattr(self_participant.participant, 'inviter_id'):
+        return
+    # assume the participant date is the added date (idk what else it could be)
+    added_on = getattr(self_participant.participant, 'date', None)
+    if not added_on:
+        return
+    if datetime.now(timezone.utc) - added_on > timedelta(seconds=2):
         return
     inviter_id = self_participant.participant.inviter_id
     await on_added(inviter_id, channel_id)
