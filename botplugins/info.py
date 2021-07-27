@@ -1,0 +1,1 @@
+../stdplugins/info.py

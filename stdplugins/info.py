@@ -7,8 +7,9 @@ Show all .info about the replied message
 from telethon import events
 from telethon.utils import add_surrogate
 from telethon.tl.functions.channels import GetParticipantRequest
-from telethon.tl.types import InputPeerChannel, MessageEntityPre
+from telethon.tl.types import InputPeerChannel, MessageEntityPre, User
 from telethon.tl.tlobject import TLObject
+from telethon.errors.rpcerrorlist import UserNotParticipantError
 import datetime
 
 STR_LEN_MAX = 256
@@ -114,11 +115,17 @@ async def who(event):
         else:
             who = await msg.get_sender()
             ic = await event.get_input_chat()
-            if isinstance(ic, InputPeerChannel):
-                participant = (await borg(GetParticipantRequest(
-                    ic,
-                    who
-                ))).participant
+            if who is None:
+                who = await event.get_chat()
+            elif (isinstance(ic, InputPeerChannel) and
+                    isinstance(who, User)):
+                try:
+                    participant = (await borg(GetParticipantRequest(
+                        ic,
+                        who
+                    ))).participant
+                except UserNotParticipantError:
+                    pass
     yaml_text = yaml_format(who)
     if participant is not None:
         yaml_text += "\n"
