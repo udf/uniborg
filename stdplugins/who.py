@@ -37,6 +37,9 @@ async def _(event):
             last = now
             await event.edit(f'counting member stats ({index / it.total:.2%})…')
 
+        if member.bot:
+            continue
+
         messages = await borg.get_messages(
             event.chat_id,
             from_user=member,
@@ -57,6 +60,9 @@ async def _(event):
 async def _(event):
     members = []
     async for member in borg.iter_participants(event.chat_id):
+        if member.bot:
+            continue
+
         messages = await borg.get_messages(
             event.chat_id,
             from_user=member,
