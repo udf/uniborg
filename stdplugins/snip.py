@@ -21,6 +21,9 @@ snips = storage.snips or {}
 
 @borg.on(events.NewMessage(pattern=r'(?:\.snip\s+|!)(\S+)$', outgoing=True))
 async def on_snip(event):
+    if event.message.media:
+        return
+
     name = event.pattern_match.group(1)
     if name not in snips:
         return
