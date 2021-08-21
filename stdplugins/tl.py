@@ -204,7 +204,7 @@ async def _(event):
         target_language_code=target
     )).translations[0]
     translated = translation.translated_text
-    langs = (translation.detected_language_code, target)
+    langs = (source or translation.detected_language_code, target)
 
     source, target = (LANGUAGES.get(l.lower(), l.upper()) for l in langs)
     result = f"<b>{source} → {target}:</b>\n{html.escape(translated)}"
