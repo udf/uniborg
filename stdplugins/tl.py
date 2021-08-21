@@ -158,7 +158,7 @@ async def _(event):
     if borg.me.bot and event.chat_id not in allowed_groups:
         return
 
-    source, target = None, "en"
+    source, target = None, None
     text = None
     argtext = False
     if args := event.pattern_match.group("args"):
@@ -172,6 +172,9 @@ async def _(event):
             text = args[1]
         elif source is None and target is None:
             text = args[0]
+
+    if target is None:
+        target = "en"
 
     if event.is_reply:
         text = (await event.get_reply_message()).raw_text
