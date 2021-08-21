@@ -4,3 +4,4 @@ __pycache__
 *.session
 *.session-journal
 data/
+google_cloud_key.json
