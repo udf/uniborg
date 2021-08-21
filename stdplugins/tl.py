@@ -153,7 +153,7 @@ async def _(event):
     await event.respond(f"Added {event.chat_id} to allowed groups")
 
 
-@borg.on(borg.cmd(r"tl", r"(?:\s+(?P<args>.*))?"))
+@borg.on(borg.cmd(r"tl", r"(?s)(?:\s+(?P<args>.*))?"))
 async def _(event):
     if borg.me.bot and event.chat_id not in allowed_groups:
         return
@@ -217,7 +217,7 @@ async def _(event):
     await action(result, parse_mode="html")
 
 
-@borg.on(borg.cmd(r"tts", r"(?:\s+(?P<args>.*))?"))
+@borg.on(borg.cmd(r"tts", r"(?s)(?:\s+(?P<args>.*))?"))
 async def _(event):
     if borg.me.bot and event.chat_id not in allowed_groups:
         return
