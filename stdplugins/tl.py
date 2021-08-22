@@ -4,14 +4,9 @@
 """
 Translates stuff into English
 """
-import aiohttp
-import asyncio
 import html
 import io
-import math
 import mimetypes
-import re
-import time
 
 from telethon import helpers, types
 
@@ -199,7 +194,7 @@ async def _(event):
 
     translation = (await tl_client.translate_text(
         parent=tl_parent,
-        contents=[text.strip()],
+        contents=[html.escape(text.strip())],
         source_language_code=source,
         target_language_code=target
     )).translations[0]
@@ -207,7 +202,7 @@ async def _(event):
     langs = (source or translation.detected_language_code, target)
 
     source, target = (LANGUAGES.get(l.lower(), l.upper()) for l in langs)
-    result = f"<b>{source} → {target}:</b>\n{html.escape(translated)}"
+    result = f"<b>{source} → {target}:</b>\n{translated}"
     if borg.me.bot:
         action = event.respond
     elif argtext:
