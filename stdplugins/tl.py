@@ -16,6 +16,9 @@ from google.cloud import translate_v3 as translate
 from google.cloud import texttospeech
 
 
+PREFERRED_LANGUAGE = "en"
+
+
 mimetypes.add_type('audio/mpeg', '.borg+tts')
 
 
@@ -30,7 +33,7 @@ tl_langs = {}
 async def fetch_supported_languages():
     langs = (await tl_client.get_supported_languages(
         parent=tl_parent,
-        display_language_code="en"
+        display_language_code=PREFERRED_LANGUAGE
     )).languages
     global tl_langs
     tl_langs = { lang.language_code.lower(): lang for lang in langs }
@@ -68,7 +71,7 @@ async def _(event):
             text = args[0]
 
     if target is None:
-        target = "en"
+        target = PREFERRED_LANGUAGE
 
     if event.is_reply:
         text = (await event.get_reply_message()).raw_text
