@@ -4,6 +4,7 @@
 """
 Translates stuff into English
 """
+import asyncio
 import html
 import io
 import mimetypes
@@ -18,124 +19,22 @@ from google.cloud import texttospeech
 mimetypes.add_type('audio/mpeg', '.borg+tts')
 
 
-LANGUAGES = {
-    'af': 'Afrikaans',
-    'sq': 'Albanian',
-    'am': 'Amharic',
-    'ar': 'Arabic',
-    'hy': 'Armenian',
-    'az': 'Azerbaijani',
-    'eu': 'Basque',
-    'be': 'Belarusian',
-    'bn': 'Bengali',
-    'bs': 'Bosnian',
-    'bg': 'Bulgarian',
-    'ca': 'Catalan',
-    'ceb': 'Cebuano',
-    'ny': 'Chichewa',
-    'zh-cn': 'Chinese (Simplified)',
-    'zh-tw': 'Chinese (Traditional)',
-    'co': 'Corsican',
-    'hr': 'Croatian',
-    'cs': 'Czech',
-    'da': 'Danish',
-    'nl': 'Dutch',
-    'en': 'English',
-    'eo': 'Esperanto',
-    'et': 'Estonian',
-    'tl': 'Filipino',
-    'fi': 'Finnish',
-    'fr': 'French',
-    'fy': 'Frisian',
-    'gl': 'Galician',
-    'ka': 'Georgian',
-    'de': 'German',
-    'el': 'Greek',
-    'gu': 'Gujarati',
-    'ht': 'Haitian Creole',
-    'ha': 'Hausa',
-    'haw': 'Hawaiian',
-    'iw': 'Hebrew',
-    'hi': 'Hindi',
-    'hmn': 'Hmong',
-    'hu': 'Hungarian',
-    'is': 'Icelandic',
-    'ig': 'Igbo',
-    'id': 'Indonesian',
-    'ga': 'Irish',
-    'it': 'Italian',
-    'ja': 'Japanese',
-    'jw': 'Javanese',
-    'kn': 'Kannada',
-    'kk': 'Kazakh',
-    'km': 'Khmer',
-    'rw': 'Kinyarwanda',
-    'ko': 'Korean',
-    'ku': 'Kurdish (Kurmanji)',
-    'ky': 'Kyrgyz',
-    'lo': 'Lao',
-    'la': 'Latin',
-    'lv': 'Latvian',
-    'lt': 'Lithuanian',
-    'lb': 'Luxembourgish',
-    'mk': 'Macedonian',
-    'mg': 'Malagasy',
-    'ms': 'Malay',
-    'ml': 'Malayalam',
-    'mt': 'Maltese',
-    'mi': 'Maori',
-    'mr': 'Marathi',
-    'mn': 'Mongolian',
-    'my': 'Myanmar (Burmese)',
-    'ne': 'Nepali',
-    'no': 'Norwegian',
-    'or': 'Odia (Oriya)',
-    'ps': 'Pashto',
-    'fa': 'Persian',
-    'pl': 'Polish',
-    'pt': 'Portuguese',
-    'pa': 'Punjabi',
-    'ro': 'Romanian',
-    'ru': 'Russian',
-    'sm': 'Samoan',
-    'gd': 'Scots Gaelic',
-    'sr': 'Serbian',
-    'st': 'Sesotho',
-    'sn': 'Shona',
-    'sd': 'Sindhi',
-    'si': 'Sinhala',
-    'sk': 'Slovak',
-    'sl': 'Slovenian',
-    'so': 'Somali',
-    'es': 'Spanish',
-    'su': 'Sundanese',
-    'sw': 'Swahili',
-    'sv': 'Swedish',
-    'tg': 'Tajik',
-    'ta': 'Tamil',
-    'tt': 'Tatar',
-    'te': 'Telugu',
-    'th': 'Thai',
-    'tr': 'Turkish',
-    'tk': 'Turkmen',
-    'uk': 'Ukrainian',
-    'ur': 'Urdu',
-    'ug': 'Uyghur',
-    'uz': 'Uzbek',
-    'vi': 'Vietnamese',
-    'cy': 'Welsh',
-    'xh': 'Xhosa',
-    'yi': 'Yiddish',
-    'yo': 'Yoruba',
-    'zu': 'Zulu'
-}
-
-
 credentials = service_account.Credentials.from_service_account_file(
     "google_cloud_key.json")
 tl_client = translate.TranslationServiceAsyncClient(credentials=credentials)
 tl_parent = f"projects/{credentials.project_id}"
 tts_client = texttospeech.TextToSpeechAsyncClient(credentials=credentials)
+
+
+tl_langs = {}
+async def fetch_supported_languages():
+    langs = (await tl_client.get_supported_languages(
+        parent=tl_parent,
+        display_language_code="en"
+    )).languages
+    global tl_langs
+    tl_langs = { lang.language_code.lower(): lang for lang in langs }
+asyncio.create_task(fetch_supported_languages())
 
 
 allowed_groups = set((int(x) for x in storage.allowed_groups or []))
@@ -159,10 +58,10 @@ async def _(event):
     if args := event.pattern_match.group("args"):
         args = args.split(":::", 1)
         langs = args[0].split(">>", 1)
-        if (s:= langs[0]).lower() in LANGUAGES:
-            source = s
-        if len(langs) > 1 and (t:= langs[1]).lower() in LANGUAGES:
-            target = t
+        if (s:= langs[0]).lower() in tl_langs:
+            source = tl_langs[s].language_code
+        if len(langs) > 1 and (t:= langs[1]).lower() in tl_langs:
+            target = tl_langs[t].language_code
         if len(args) > 1:
             text = args[1]
         elif source is None and target is None:
@@ -201,7 +100,7 @@ async def _(event):
     translated = translation.translated_text
     langs = (source or translation.detected_language_code, target)
 
-    source, target = (LANGUAGES.get(l.lower(), l.upper()) for l in langs)
+    source, target = (tl_langs[l.lower()].display_name for l in langs)
     result = f"<b>{source} → {target}:</b>\n{translated}"
     if borg.me.bot:
         action = event.respond
@@ -221,7 +120,7 @@ async def _(event):
     text = None
     if args := event.pattern_match.group("args"):
         args = args.split(":::", 1)
-        if args[0].lower() in LANGUAGES:
+        if args[0].lower() in tl_langs:
             lang = args[0]
         if len(args) > 1:
             text = args[1]
@@ -266,3 +165,16 @@ async def _(event):
             voice=True
         )]
     )
+
+
+@borg.on(borg.cmd("langs"))
+async def _(event):
+    langs = "\n".join([
+        "<b>Supported languages:</b>",
+        *(f"{l.language_code}: {l.display_name}" for _, l in tl_langs.items())
+    ])
+    if borg.me.bot:
+        action = event.respond
+    else:
+        action = event.edit
+    await action(langs, parse_mode="html")
