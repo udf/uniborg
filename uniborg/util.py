@@ -20,16 +20,20 @@ from telethon.tl.functions.messages import GetPeerDialogsRequest
 
 
 # Cooldown in seconds
-def cooldown(timeout):
+def cooldown(timeout, chat=True):
     def wrapper(function):
         last_called = defaultdict(int)
 
         async def wrapped(event, *args, **kwargs):
+            medium = event.chat_id
+            if not chat:
+                medium = event.sender_id
+
             current_time = time()
-            if current_time - last_called[event.chat_id] < timeout:
-                time_left = round(timeout - (current_time - last_called[event.chat_id]), 1)
+            if current_time - last_called[medium] < timeout:
+                time_left = round(timeout - (current_time - last_called[medium]), 1)
                 return
-            last_called[event.chat_id] = current_time
+            last_called[medium] = current_time
             return await function(event, *args, **kwargs)
         wrapped.__module__ = function.__module__
         return wrapped
@@ -44,6 +48,34 @@ def chance(amount, lower=1):
             if res != 0:
                 return
             await function(event, *args, **kwargs)
+        wrapped.__module__ = function.__module__
+        return wrapped
+    return wrapper
+
+
+def group_admin(force=False):
+    def wrapper(function):
+        timeout = 60 * 60 * 6
+        last_checked = defaultdict(int)
+        admin_cache = defaultdict(set)
+
+        async def wrapped(event, *args, **kwargs):
+            current_time = time()
+            chat = event.chat_id
+            user = event.sender_id
+
+            if force or current_time - last_checked[chat] > timeout:
+                permissions = await event.client.get_permissions(chat, user)
+                last_checked[chat] = current_time
+                if not permissions.is_admin:
+                    return
+
+                admin_cache[chat].add(user)
+
+            if user not in admin_cache[chat]:
+                return
+
+            return await function(event, *args, **kwargs)
         wrapped.__module__ = function.__module__
         return wrapped
     return wrapper
