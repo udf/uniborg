@@ -147,6 +147,11 @@ async def _(event):
         )
         lang = response.languages[0].language_code
 
+    voices = (await tts_client.list_voices(language_code=lang)).voices
+    if not voices:
+        await event.respond(f"No voices for {tl_langs[lang].display_name}")
+        return
+
     response = await tts_client.synthesize_speech(
         input=texttospeech.SynthesisInput(text=text),
         voice=texttospeech.VoiceSelectionParams(
