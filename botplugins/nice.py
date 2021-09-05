@@ -37,16 +37,22 @@ async def return_nice(event):
         msg = await event.reply("No nice found.  Not nice.")
 
         await sleep(5)
-
         await msg.delete()
+
         try:
             await event.delete()
         except:
             pass
-
         return
 
     chat_id = str(event.chat_id)
+    if not chat_id in groups:
+        try:
+            await event.delete()
+        except:
+            pass
+        return
+
     group_users = {}
     for user in groups[chat_id]:
         group_users[user] = users[user]
