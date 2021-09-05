@@ -13,14 +13,18 @@ patterns:
 import re
 import html
 from asyncio import sleep
+from operator import itemgetter
+from collections import defaultdict
 
 from telethon import events
 from uniborg.util import blacklist
 
 
+# print nice leaderboard
 @borg.on(borg.cmd(r"(me)?nice"))
 async def return_nice(event):
-    nices = storage.nices
+    users = storage.users or {}
+    groups = storage.groups or {}
     match = event.pattern_match.string
 
     reply_msg = "<b>Nice</b>"
@@ -28,7 +32,7 @@ async def return_nice(event):
     sender = str(event.sender_id)
     try:
         if "me" in match:
-            nices = {sender: nices[sender]}
+            users = {sender: users[sender]}
     except KeyError:
         msg = await event.reply("No nice found.  Not nice.")
 
@@ -42,7 +46,15 @@ async def return_nice(event):
 
         return
 
-    for user in nices.values():
+    chat_id = str(event.chat_id)
+    group_users = {}
+    for user in groups[chat_id]:
+        group_users[user] = users[user]
+
+    sorted_users = dict(sorted(group_users.items(), key=lambda i: (i[1]["count"]), reverse=True))
+    print(sorted_users)
+    for user in sorted_users.values():
+        
         name = html.escape(user["name"])
         count = user["count"]
 
@@ -51,6 +63,7 @@ async def return_nice(event):
     await event.respond(reply_msg, parse_mode="html")
 
 
+# blacklist someone from having their score reported
 @borg.on(borg.admin_cmd(r"(not|very)nice", pattern=r"(\d+)"))
 async def nice_blacklist(event):
     m = event.pattern_match
@@ -69,6 +82,7 @@ async def nice_blacklist(event):
     await msg.delete()
 
 
+# remove someone from the leaderboard
 @borg.on(borg.cmd(r"ripnice\s*(yes)?"))
 async def remove_nice(event):
     m = event.pattern_match
@@ -78,9 +92,10 @@ async def remove_nice(event):
 
 
     sender_id = str(event.sender_id)
-    nices = storage.nices or {}
+    users = storage.users or {}
 
-    nices.pop(sender_id)
+    users.pop(sender_id)
+    storage.users = users
 
     msg = await event.respond(f"RIP {event.sender.first_name}\nNice.")
 
@@ -95,26 +110,31 @@ async def nice(event):
     if event.is_private:
         return
 
-    m = event.pattern_match
     sender_id = str(event.sender_id)
-    count = len(m)
 
     nice_blacklist = storage.nice_blacklist or {}
+
     if sender_id in nice_blacklist:
         return
 
     sender = await event.get_sender()
     name = sender.first_name
+    m = event.pattern_match
+    count = len(m)
+    chat_id = str(event.chat_id)
 
-    nices = storage.nices or {}
-    nices_user = nices.get(sender_id)
-    if not nices_user:
-        total_count = 0
-    else:
-        total_count = int(nices_user["count"])
+    users = storage.users or defaultdict(lambda: defaultdict(int))
+    groups = storage.groups or defaultdict(set)
 
-    nices[sender_id] = {"name": name, "count": str(total_count + count)}
-    storage.nices = nices
+    user = users[sender_id]
+    user["count"] = int(user["count"]) + count
+    user["name"] = name
+
+    chat = groups[chat_id]
+    chat.add(sender_id)
+
+    storage.users = users
+    storage.groups = groups
 
 
 @borg.on(borg.blacklist_plugin())
