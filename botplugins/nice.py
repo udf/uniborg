@@ -4,7 +4,7 @@ Keeps track of instances of the word "nice"
 Use `/nice` to see all nices, and `/ripnice` to reset your stats.
 
 patterns:
-• `(?<!/)\\bno*i+c+e+\\b`
+• `(?<!/)\\bn+o*i+c+e+\\b`
 • `/nice`
 • `/ripnice (yes)?`
 • `/(not|very)nice (\d+)` ADMIN ONLY
@@ -117,7 +117,7 @@ async def remove_nice(event):
 
 
 # count nices
-@borg.on(events.NewMessage(pattern=re.compile(r"(?<!/)\bno*i+c+e+r*\b").findall))
+@borg.on(events.NewMessage(pattern=re.compile(r"(?<!/)\bn+o*i+c+e+r*\b").findall))
 async def nice(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
