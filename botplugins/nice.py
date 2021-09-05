@@ -55,7 +55,7 @@ async def return_nice(event):
 
     group_users = {}
     for user in groups[chat_id]:
-        group_users[user] = users[user]
+        group_users[user] = users.get(user)
 
     sorted_users = dict(sorted(group_users.items(), key=lambda i: (i[1]["count"]), reverse=True))
     print(sorted_users)
