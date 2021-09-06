@@ -148,11 +148,16 @@ async def nice(event):
     sender = await event.get_sender()
     name = sender.first_name
     m = event.pattern_match
+
+    # anti-spam measures
     count = len(m)
     if count > 15:
         count = -count
-    if count > 5:
+    if count >= 5:
         count = -1
+    if count > 1:
+        count = 1
+
     chat_id = str(event.chat_id)
 
     users = storage.users or defaultdict(lambda: defaultdict(int))
