@@ -68,10 +68,11 @@ async def return_nice(event):
         return
 
     sorted_users = dict(sorted(group_users.items(), key=lambda i: (i[1]["count"]), reverse=True))
-    print(sorted_users)
     for user in sorted_users.values():
-        
-        name = html.escape(user["name"])
+        try:
+            name = html.escape(user["name"])
+        except AttributeError:
+            pass
         count = user["count"]
 
         reply_msg += f"\n{name}:  <code>{count}</code>"
@@ -99,6 +100,7 @@ async def nice_blacklist(event):
 
 
 # remove someone from the leaderboard
+@borg.on(borg.admin_cmd(r"ripnice\s*(\d+)?"))
 @borg.on(borg.cmd(r"ripnice\s*(yes)?"))
 async def remove_nice(event):
     m = event.pattern_match
@@ -106,14 +108,23 @@ async def remove_nice(event):
         await event.reply("Are you sure?  Respond with `/ripnice yes`.")
         return
 
+    arg = m.group(1)
 
-    sender_id = str(event.sender_id)
+    member = str(event.sender_id)
+
+    if arg != "yes":
+        member = arg
     users = storage.users or {}
 
-    users.pop(sender_id)
+    try:
+        name = users[member]["name"]
+        users[member]["count"] = 0
+    except KeyError:
+        return
+
     storage.users = users
 
-    msg = await event.respond(f"RIP {event.sender.first_name}\nNice.")
+    msg = await event.respond(f"RIP {name}\nNice.")
 
 
 # count nices
@@ -129,7 +140,6 @@ async def nice(event):
     sender_id = str(event.sender_id)
 
     nice_blacklist = storage.nice_blacklist or {}
-
     if sender_id in nice_blacklist:
         return
 
@@ -137,6 +147,10 @@ async def nice(event):
     name = sender.first_name
     m = event.pattern_match
     count = len(m)
+    if count > 5:
+        count = -1
+    if count > 15:
+        count = -count
     chat_id = str(event.chat_id)
 
     users = storage.users or defaultdict(lambda: defaultdict(int))
