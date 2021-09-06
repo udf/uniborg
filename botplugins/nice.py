@@ -149,10 +149,10 @@ async def nice(event):
     name = sender.first_name
     m = event.pattern_match
     count = len(m)
-    if count > 5:
-        count = -1
     if count > 15:
         count = -count
+    if count > 5:
+        count = -1
     chat_id = str(event.chat_id)
 
     users = storage.users or defaultdict(lambda: defaultdict(int))
