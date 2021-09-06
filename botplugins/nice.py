@@ -22,7 +22,7 @@ from uniborg.util import blacklist, cooldown
 
 # print nice leaderboard
 @borg.on(borg.cmd(r"(me)?nice"))
-@cooldown(60)
+@cooldown(15)
 async def return_nice(event):
     users = storage.users or {}
     groups = storage.groups or {}
