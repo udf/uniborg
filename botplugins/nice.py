@@ -18,10 +18,12 @@ from collections import defaultdict
 
 from telethon import events
 from uniborg.util import blacklist
+from uniborg.util import cooldown
 
 
 # print nice leaderboard
 @borg.on(borg.cmd(r"(me)?nice"))
+@cooldown(60)
 async def return_nice(event):
     users = storage.users or {}
     groups = storage.groups or {}
@@ -128,7 +130,8 @@ async def remove_nice(event):
 
 
 # count nices
-@borg.on(events.NewMessage(pattern=re.compile(r"(?<!/)\bn+o*i+c+e+r*\b").findall))
+@borg.on(events.NewMessage(pattern=re.compile(r"(?i)(?<!/)\bn+o*i+c+e+r*\b").findall))
+@cooldown(15, chat=False)
 async def nice(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
