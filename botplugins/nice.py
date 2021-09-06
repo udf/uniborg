@@ -17,8 +17,7 @@ from operator import itemgetter
 from collections import defaultdict
 
 from telethon import events
-from uniborg.util import blacklist
-from uniborg.util import cooldown
+from uniborg.util import blacklist, cooldown
 
 
 # print nice leaderboard
