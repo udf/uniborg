@@ -36,9 +36,10 @@ def yaml_format(obj, indent=0):
     if isinstance(obj, dict):
         if not obj:
             return 'dict:'
-        result.append(obj.get('_', 'dict') + ':')
         items = obj.items()
+        has_items = len(items) > 1
         has_multiple_items = len(items) > 2
+        result.append(obj.get('_', 'dict') + (':' if has_items else ''))
         if has_multiple_items:
             result.append('\n')
             indent += 2
@@ -54,7 +55,8 @@ def yaml_format(obj, indent=0):
                 result.append(' ')
             result.append(f'{formatted}')
             result.append('\n')
-        result.pop()
+        if has_items:
+            result.pop()
         if has_multiple_items:
             indent -= 2
     elif isinstance(obj, str):
