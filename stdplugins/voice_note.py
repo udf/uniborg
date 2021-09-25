@@ -95,7 +95,9 @@ async def on_audio_to_vn(event):
     proc = await asyncio.create_subprocess_exec(*cmd)
     await proc.wait()
 
-  duration = float(audio_streams[0]['duration'])
+  duration = float(audio_streams[0].get('duration', 0))
+  if not duration:
+    duration = float(probe['format'].get('duration', 0))
 
   await borg.send_file(
     await event.get_input_chat(),
