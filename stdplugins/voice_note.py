@@ -4,17 +4,29 @@ Reply to audio with .vn (or put .vn in the caption) to resend it as a voice mess
 
 import asyncio
 from asyncio import subprocess
+import logging
 from os import path
 from tempfile import NamedTemporaryFile
 import re
+import shlex
+import time
 
 from telethon.tl.types import DocumentAttributeAudio, DocumentAttributeFilename
 import numpy as np
 import ffmpeg
 
 
+async def run_cmd(cmd, logger):
+  logger.info(f'running: {shlex.join(cmd)}')
+  start_time = time.time()
+  proc = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE)
+  stdout, _ = await proc.communicate()
+  logger.info(f'took {round((time.time() - start_time) * 1000)}ms')
+  return stdout
+
+
 # durov pls fix server waveforms
-async def generate_waveform(filename, duration):
+async def generate_waveform(filename, duration, logger):
   # speedup audio to ~1s
   ratio = duration / 1
 
@@ -39,8 +51,7 @@ async def generate_waveform(filename, duration):
     loglevel='warning'
   ).compile()
 
-  proc = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE)
-  stdout, stderr = await proc.communicate()
+  stdout = await run_cmd(cmd, logger)
 
   # interpolate and normalize 100 samples
   data = np.abs(np.int16(np.frombuffer(stdout, dtype=np.int8)))
@@ -71,14 +82,16 @@ async def on_audio_to_vn(event):
   infile = await borg.download_media(target, file=NamedTemporaryFile(suffix='.opus'))
   infile.seek(0)
   probe = ffmpeg.probe(infile.name)
+  logger = logging.getLogger(f'vn@{target.sender_id}/{target.id} ({target.file.name})')
 
   audio_streams = [stream for stream in probe['streams'] if stream['codec_type'] == 'audio']
   if not audio_streams:
-    logger.info(f'No audio streams found in {target.sender_id}/{target.id} ({target.file.name})')
+    logger.info('No audio streams found')
     infile.close()
     return
 
   duration = float(audio_streams[0].get('duration', 0))
+  logger.info(f'duration: {duration}')
 
   # certain formats dont work as voice messages
   outfile = infile
@@ -110,13 +123,13 @@ async def on_audio_to_vn(event):
       .compile()
     )
 
-    proc = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE)
-    stdout, stderr = await proc.communicate()
+    stdout = await run_cmd(cmd, logger)
 
     for duration in re.finditer(r'out_time_us=(.+)', stdout.decode('utf8')):
       pass
     if isinstance(duration, re.Match):
       duration = float(duration.group(1)) / 1000000
+      logger.info(f'encoded duration: {duration}')
 
   await borg.send_file(
     await event.get_input_chat(),
@@ -125,7 +138,7 @@ async def on_audio_to_vn(event):
       DocumentAttributeAudio(
         duration=round(duration),
         voice=True,
-        waveform=await generate_waveform(infile.name, duration)
+        waveform=await generate_waveform(infile.name, duration, logger)
       ),
       DocumentAttributeFilename('')
     ]
