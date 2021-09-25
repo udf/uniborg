@@ -6,6 +6,7 @@ import asyncio
 from asyncio import subprocess
 from os import path
 from tempfile import NamedTemporaryFile
+import re
 
 from telethon.tl.types import DocumentAttributeAudio, DocumentAttributeFilename
 import numpy as np
@@ -23,6 +24,7 @@ async def generate_waveform(filename, duration):
     nth_root += 1
 
   graph = ffmpeg.input(filename).audio
+  graph = graph.filter('loudnorm')
   if final_ratio > 1:
     for _ in range(nth_root):
       graph = graph.filter('atempo', final_ratio)
@@ -32,7 +34,9 @@ async def generate_waveform(filename, duration):
     ac=1,
     ar=16000,
     acodec='pcm_s8',
-    f='data'
+    f='data',
+    hide_banner=None,
+    loglevel='warning'
   ).compile()
 
   proc = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE)
@@ -74,30 +78,45 @@ async def on_audio_to_vn(event):
     infile.close()
     return
 
+  duration = float(audio_streams[0].get('duration', 0))
+
   # certain formats dont work as voice messages
   outfile = infile
-  if audio_streams[0]['codec_name'] != 'opus':
+  audio_is_opus = audio_streams[0]['codec_name'] == 'opus'
+  if len(probe['streams']) != 1 or not audio_is_opus:
+    cmd = ffmpeg.input(infile.name).audio
+
+    # copy opus, otherwise re-encode
+    kwargs = {'acodec': 'copy'}
+    if not audio_is_opus:
+      kwargs = {
+        'f': 'opus',
+        'acodec': 'libopus',
+        'audio_bitrate': '128k',
+        'vbr': 'on'
+      }
+
     outfile = NamedTemporaryFile('rb', suffix='.opus')
     cmd = (
-      ffmpeg
-      .input(infile.name).audio
-      .output(
+      cmd.output(
         outfile.name,
-        ac='1',
-        f='opus',
-        acodec='libopus',
-        audio_bitrate='128k',
-        vbr='on'
+        progress='-',
+        stats_period=999999,
+        hide_banner=None,
+        loglevel='warning',
+        **kwargs
       )
       .overwrite_output()
       .compile()
     )
-    proc = await asyncio.create_subprocess_exec(*cmd)
-    await proc.wait()
 
-  duration = float(audio_streams[0].get('duration', 0))
-  if not duration:
-    duration = float(probe['format'].get('duration', 0))
+    proc = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE)
+    stdout, stderr = await proc.communicate()
+
+    for duration in re.finditer(r'out_time_us=(.+)', stdout.decode('utf8')):
+      pass
+    if isinstance(duration, re.Match):
+      duration = float(duration.group(1)) / 1000000
 
   await borg.send_file(
     await event.get_input_chat(),
