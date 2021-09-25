@@ -61,7 +61,7 @@ async def generate_waveform(filename, duration, logger):
     np.arange(0, len(data)),
     data
   )
-  waveform = (waveform / np.max(waveform) * 31)
+  waveform = (waveform / (np.max(waveform) or 1) * 31)
 
   # convert to bytes containing 100 consecutive 5-bit numbers
   bits = ''.join(f'{round(i):05b}' for i in waveform)
