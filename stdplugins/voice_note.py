@@ -32,7 +32,7 @@ async def generate_waveform(filename, duration, logger):
 
   # apply multiple speedup filters each ≤ 10x for accuracy
   nth_root = 1
-  while (final_ratio := ratio ** (1/nth_root)) > 10:
+  while (final_ratio := ratio ** (1/nth_root)) > 6:
     nth_root += 1
 
   graph = ffmpeg.input(filename).audio
