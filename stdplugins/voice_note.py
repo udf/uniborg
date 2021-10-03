@@ -11,6 +11,7 @@ import re
 import shlex
 import time
 
+import telethon.utils
 from telethon.tl.types import DocumentAttributeAudio, DocumentAttributeFilename
 import numpy as np
 import ffmpeg
@@ -36,7 +37,7 @@ async def generate_waveform(filename, duration, logger):
     nth_root += 1
 
   graph = ffmpeg.input(filename).audio
-  graph = graph.filter('loudnorm')
+  graph = graph.filter('loudnorm', dual_mono=True, i=-5, lra=20, offset=20)
   if final_ratio > 1:
     for _ in range(nth_root):
       graph = graph.filter('atempo', final_ratio)
@@ -61,11 +62,10 @@ async def generate_waveform(filename, duration, logger):
     np.arange(0, len(data)),
     data
   )
-  waveform = (waveform / (np.max(waveform) or 1) * 31)
+  waveform = waveform ** 0.8
+  waveform = np.clip(waveform / (np.max(waveform) or 1) * 48, 0, 31)
 
-  # convert to bytes containing 100 consecutive 5-bit numbers
-  bits = ''.join(f'{round(i):05b}' for i in waveform)
-  return bytes(int(f'{bits[i:i+8]:0<8}', 2) for i in range(0, len(bits), 8))
+  return telethon.utils.encode_waveform(bytes(round(i) for i in waveform))
 
 
 @borg.on(borg.admin_cmd(r'vn(d)?'))
