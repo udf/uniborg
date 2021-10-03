@@ -2,6 +2,7 @@ import asyncio
 from asyncio import subprocess
 from dataclasses import dataclass
 import math
+from pathlib import Path
 import time
 
 from uniborg.util import parse_pre
@@ -10,10 +11,13 @@ from telethon.tl.types import DocumentAttributeFilename
 from telethon.errors.rpcerrorlist import MessageTooLongError
 from telethon.tl import types
 
+import ffmpeg
 from aiohttp import web, hdrs
 
 
 CHUNK_SIZE = 512 * 1024
+# https://i.redd.it/snr1q4nimaa71.jpg
+FFPROBE_PATH = Path(ffmpeg.input('').output('').compile()[0]).with_name('ffprobe')
 
 HTTP_PORT = None
 unload = None
@@ -75,7 +79,7 @@ async def on_ffprobe(event):
   start_time = time.time()
   proc = await asyncio.create_subprocess_exec(
     *[
-      'ffprobe',
+      FFPROBE_PATH,
       '-hide_banner',
       f'http://127.0.0.1:{HTTP_PORT}/{job_id}/{file_name}'
     ],
