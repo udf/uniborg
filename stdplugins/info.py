@@ -4,21 +4,14 @@
 """
 Show all .info about the replied message
 """
+from uniborg.util import parse_pre
+
 from telethon import events
-from telethon.utils import add_surrogate
 from telethon.tl.functions.channels import GetParticipantRequest
-from telethon.tl.types import InputPeerChannel, MessageEntityPre, User, DocumentAttributeFilename
+from telethon.tl.types import InputPeerChannel, User, DocumentAttributeFilename
 from telethon.tl.tlobject import TLObject
 from telethon.errors.rpcerrorlist import UserNotParticipantError, MessageTooLongError
 import datetime
-
-
-def parse_pre(text):
-    text = text.strip()
-    return (
-        text,
-        [MessageEntityPre(offset=0, length=len(add_surrogate(text)), language='')]
-    )
 
 
 def yaml_format(obj, indent=0, max_str_len=256, max_byte_len=64):
