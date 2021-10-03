@@ -1,3 +1,6 @@
+"""
+  Runs ffprobe on a media file without downloading the whole thing
+"""
 import asyncio
 from asyncio import subprocess
 from dataclasses import dataclass
@@ -7,6 +10,7 @@ import time
 
 from uniborg.util import parse_pre
 
+import telethon
 from telethon.tl.types import DocumentAttributeFilename
 from telethon.errors.rpcerrorlist import MessageTooLongError
 from telethon.tl import types
@@ -71,11 +75,18 @@ async def on_ffprobe(event):
   target = await event.get_reply_message()
   if not target or not target.media:
     return
+  # skip non-downloadable media
+  try:
+    telethon.utils._get_file_info(target.media)
+  except TypeError:
+    return
+
   job_id = f'{event.chat_id}_{event.message.id}'
   file_name = target.file.name
   if not file_name:
     file_name = 'media' + (target.file.ext or '')
   file_jobs[job_id] = FileJob(target.media, target.file.size)
+
   start_time = time.time()
   proc = await asyncio.create_subprocess_exec(
     *[
