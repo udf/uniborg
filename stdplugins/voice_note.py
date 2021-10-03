@@ -37,7 +37,7 @@ async def generate_waveform(filename, duration, logger):
     nth_root += 1
 
   graph = ffmpeg.input(filename).audio
-  graph = graph.filter('loudnorm', dual_mono=True, i=-5, lra=20, offset=20)
+  graph = graph.filter('loudnorm', dual_mono=True, i=-20, lra=20)
   if final_ratio > 1:
     for _ in range(nth_root):
       graph = graph.filter('atempo', final_ratio)
@@ -63,7 +63,7 @@ async def generate_waveform(filename, duration, logger):
     data
   )
   waveform = waveform ** 0.8
-  waveform = np.clip(waveform / (np.max(waveform) or 1) * 48, 0, 31)
+  waveform = np.clip(waveform / (np.max(waveform) or 1) * 42, 0, 31)
 
   return telethon.utils.encode_waveform(bytes(round(i) for i in waveform))
 
