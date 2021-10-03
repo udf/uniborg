@@ -2,6 +2,7 @@ import asyncio
 from asyncio import subprocess
 from dataclasses import dataclass
 import math
+import time
 
 from uniborg.util import parse_pre
 
@@ -71,6 +72,7 @@ async def on_ffprobe(event):
   if not file_name:
     file_name = 'media' + (target.file.ext or '')
   file_jobs[job_id] = FileJob(target.media, target.file.size)
+  start_time = time.time()
   proc = await asyncio.create_subprocess_exec(
     *[
       'ffprobe',
@@ -84,7 +86,8 @@ async def on_ffprobe(event):
   output = (
     f"{output.decode('utf8')}"
     f"\n{stderr.decode('utf8')}"
-    f'\n(downloaded {file_jobs[job_id].bytes_downloaded} bytes)'
+    f'\n(downloaded {file_jobs[job_id].bytes_downloaded} bytes'
+    f'in {round(time.time() - start_time, 1)}s)'
   )
   del file_jobs[job_id]
 
