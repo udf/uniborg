@@ -86,8 +86,8 @@ async def on_ffprobe(event):
   output = (
     f"{output.decode('utf8')}"
     f"\n{stderr.decode('utf8')}"
-    f'\n(downloaded {file_jobs[job_id].bytes_downloaded} bytes'
-    f'in {round(time.time() - start_time, 1)}s)'
+    f'\n(downloaded {file_jobs[job_id].bytes_downloaded // 1024} KB'
+    f' in {round(time.time() - start_time, 1)}s)'
   )
   del file_jobs[job_id]
 
