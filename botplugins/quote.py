@@ -95,7 +95,6 @@ async def add_quote(event):
         pass
 
 
-
 @borg.on(borg.admin_cmd(r"rmq(?:uote)?", r"(\d+)(?:\:(\-?\d+))?"))
 @cooldown(5)
 async def rm_quote(event):
@@ -166,26 +165,31 @@ async def recall_quote(event):
 
     id = choice(match_quotes)
     quote = quotes[chat][id]
-    text = html.escape(quote["text"])
-    sender = quote["sender"]
-    sender_name = html.escape(f"{sender.first_name} {sender.last_name or ''}")
-    msg_date = (quote["date"]).strftime("%B, %Y")
-
-    format_quote = f"<b>{text}</b>"
-    msg = await event.respond(format_quote, parse_mode="html")
-
+    msg = await event.respond(format_quote(id, quote, True), parse_mode="html")
     await sleep(0.5)
-
-    format_quote += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
-    format_quote += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
-
-    await msg.edit(format_quote, parse_mode="html")
+    await msg.edit(format_quote(id, quote), parse_mode="html")
 
     try:
         await sleep(60)
         await event.delete()
     except:
         pass
+
+
+def format_quote(id, quote, only_text=False):
+    text = html.escape(quote["text"])
+    formatted = f"<b>{text}</b>"
+    if only_text:
+        return formatted
+
+    sender = quote["sender"]
+    sender_name = html.escape(f"{sender.first_name} {sender.last_name or ''}")
+    msg_date = (quote["date"]).strftime("%B, %Y")
+
+    formatted += f"\n<i>- <a href='tg://user?id={sender.id}'>{sender_name}</a>, "
+    formatted += f"<a href='t.me/share/url?url=%2Frecall+{id}'>{msg_date}</a></i>"
+
+    return formatted
 
 
 @borg.on(borg.blacklist_plugin())
