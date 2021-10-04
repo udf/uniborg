@@ -14,8 +14,22 @@ ADMIN ONLY:
 import html
 from asyncio import sleep
 from random import choice
+from collections import defaultdict
 from telethon import types
 from uniborg.util import cooldown, blacklist
+
+
+# Convert from old list format to defaultdict
+quotes = defaultdict(dict, storage.quotes or {})
+for chat_id, quote_list in quotes.items():
+    if isinstance(quote_list, dict):
+        continue
+    quotes[chat_id] = {
+        quote["id"]: {
+            k: v for k, v in quote.items() if k != "id"
+        } for quote in quote_list
+    }
+storage.quotes = quotes
 
 
 @borg.on(borg.cmd(r"(q(uote)?|cite)"))
@@ -30,8 +44,7 @@ async def add_quote(event):
 
     chat = str(event.chat_id)
     if not event.is_reply:
-        quotes = storage.quotes or None
-        amnt = len(quotes[chat])
+        amnt = len(storage.quotes[chat])
 
         await event.reply(
             f"There are `{amnt}` quotes saved for this group."
@@ -51,32 +64,25 @@ async def add_quote(event):
     if isinstance(sender, types.Channel) or sender.bot:
         return
 
-    quote = {}
+    quote_id = str(reply_msg.id)
+    quote = {
+        "text": text,
+        "sender": sender,
+        "date": reply_msg.date
+    }
 
-    quote["id"] = str(reply_msg.id)
-    quote["text"] = text
-    quote["sender"] = sender
-    quote["date"] = reply_msg.date
+    quotes = storage.quotes
+    if quote_id in quotes[chat]:
+        msg = await event.reply("Duplicate quote in database")
+        await sleep(10)
+        await msg.delete()
+        try:
+            await event.delete()
+        except:
+            pass
+        return
 
-    quotes = storage.quotes or {}
-    try:
-        for q in quotes[chat]:
-            if quote["id"] == q["id"]:
-                msg = await event.reply("Duplicate quote in database")
-                await sleep(10)
-                await msg.delete()
-                try:
-                    await event.delete()
-                except:
-                    pass
-                return
-    except KeyError:
-        pass
-
-    try:
-        quotes[chat].append(quote)
-    except KeyError:
-        quotes[chat] = [quote]
+    quotes[chat][quote_id] = quote
     storage.quotes = quotes
 
     user = (await event.get_sender()).first_name
@@ -97,18 +103,14 @@ async def rm_quote(event):
     query_id = match.group(1)
     chat = match.group(2) or str(event.chat_id)
 
-    quotes = storage.quotes or None
+    quotes = storage.quotes
+
     try:
-        if quotes is not None:
-            for q in quotes[chat]:
-                if query_id == q["id"]:
-                    quotes[chat].remove(q)
-                    storage.quotes = quotes
-                    await event.reply(f"Quote `{query_id}` in chat: `{chat}` removed")
-                    return
+        del quotes[chat][query_id]
+        storage.quotes = quotes
+        await event.reply(f"Quote `{query_id}` in chat: `{chat}` removed")
     except KeyError:
         await event.reply(f"No quote with ID `{query_id}`")
-
 
 
 @borg.on(borg.cmd(r"(r(ecall)?|(get|fetch)quote)(?: (?P<phrase>[\s\S]+))?"))
@@ -125,19 +127,16 @@ async def recall_quote(event):
     chat = str(event.chat_id)
 
     match_quotes = []
-    quotes = storage.quotes or {}
+    quotes = storage.quotes
 
-    try:
-        quotes[chat]
-    except KeyError:
+    if not quotes[chat]:
         return
 
     if not phrase:
-        match_quotes = quotes[chat]
+        match_quotes = list(quotes[chat].keys())
     else:
         phrase = phrase.lower()
-        for q in quotes[chat]:
-            id = q["id"]
+        for id, q in quotes[chat].items():
             text = q["text"].lower()
             sender = q["sender"]
             first_name = sender.first_name.lower()
@@ -146,18 +145,17 @@ async def recall_quote(event):
             username = (sender.username or "").lower()
 
             if phrase == id:
-                match_quotes.append(q)
+                match_quotes.append(id)
                 break
             if phrase in text:
-                match_quotes.append(q)
+                match_quotes.append(id)
                 continue
             if phrase in full_name:
-                match_quotes.append(q)
+                match_quotes.append(id)
                 continue
             if phrase in username:
-                match_quotes.append(q)
+                match_quotes.append(id)
                 continue
-
 
     if not match_quotes:
         msg = await event.reply(f"No quotes matching query:  `{phrase}`")
@@ -166,9 +164,8 @@ async def recall_quote(event):
         await event.delete()
         return
 
-    quote = choice(match_quotes)
-
-    id = quote["id"]
+    id = choice(match_quotes)
+    quote = quotes[chat][id]
     text = html.escape(quote["text"])
     sender = quote["sender"]
     sender_name = html.escape(f"{sender.first_name} {sender.last_name or ''}")
