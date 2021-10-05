@@ -258,10 +258,12 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
 
+    i = next((i for i, id in enumerate(ids) if id >= quote_id), 0)
     if before:
-        match_ids = [id for id in ids if id < quote_id][-count:]
-    else:
-        match_ids = [id for id in ids if id > quote_id][:count]
+        i = max(i - count, 0)
+    elif ids[i] == quote_id:
+        i += 1
+    match_ids = ids[i:i + count]
 
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
     return formatted, match_ids
