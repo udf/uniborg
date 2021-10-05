@@ -14,7 +14,6 @@ ADMIN ONLY:
 import html
 from asyncio import sleep
 from random import choice
-import operator
 import struct
 from collections import defaultdict
 from telethon import types, events
@@ -221,7 +220,7 @@ async def paginate_quotes_button(event):
     direction, chat_id, quote_id = struct.unpack("!xBqq", event.data)
 
     formatted, match_ids = fetch_quotes_near(
-        chat_id, quote_id, before=(direction == 1)
+        str(chat_id), quote_id, before=(direction == 1)
     )
     if not match_ids:
         await event.answer('No more quotes to display')
@@ -255,20 +254,14 @@ def get_quote_list_buttons(chat_id, match_ids):
 
 
 def fetch_quotes_near(chat_id, quote_id, count=5, before=False):
-    quotes = storage.quotes[str(chat_id)]
+    quotes = storage.quotes[chat_id]
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
-    if before:
-        ids.reverse()
 
-    i = None
-    match_ids = []
-    condition = operator.lt if before else operator.gt
-    i = next((i for i, id in enumerate(ids) if condition(id, quote_id)), None)
-    if i is not None:
-        match_ids = ids[i:i + count]
     if before:
-        match_ids.reverse()
+        match_ids = [id for id in ids if id < quote_id][-count:]
+    else:
+        match_ids = [id for id in ids if id > quote_id][:count]
 
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
     return formatted, match_ids
