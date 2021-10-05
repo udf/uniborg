@@ -8,14 +8,16 @@ patterns:
  • `q(uote)?|cite`
  • `(r(ecall)?|(get|fetch)quote)(?: ([\s\S]+))?`
 ADMIN ONLY:
- • `rmq(uote)? (\d+)(?:\:(\d+))?`
+• `rmq(uote)? (\d+)(?:\:(\d+))?`
 """
 
 import html
 from asyncio import sleep
 from random import choice
+import operator
+import struct
 from collections import defaultdict
-from telethon import types
+from telethon import types, events
 from uniborg.util import cooldown, blacklist
 
 
@@ -176,9 +178,107 @@ async def recall_quote(event):
         pass
 
 
-def format_quote(id, quote, only_text=False):
-    text = html.escape(quote["text"])
-    formatted = f"<b>{text}</b>"
+@borg.on(borg.cmd(r"ql"))
+async def prelist_quotes(event):
+    blacklist = storage.blacklist or set()
+    if event.chat_id in blacklist:
+        return
+
+    if event.is_private:
+        return
+
+    chat = str(event.chat_id)
+    quotes = storage.quotes
+
+    if not quotes[chat]:
+        await event.reply("There are no quotes saved for this group"
+            + "\nReply to a message with `/quote` to cite that message, "
+            + "and `/recall` to recall.")
+        return
+
+    button_data = struct.pack("!cBq", b"q", 0, event.chat_id)
+
+    await event.reply(
+        f"There are {len(quotes[chat])} quotes saved for this group"
+        "\nPress the button below to view all the saved quotes",
+        buttons=[[
+            types.KeyboardButtonCallback("View quotes", button_data)
+        ]]
+    )
+
+
+@borg.on(events.CallbackQuery(pattern=b'(?s)^q\x00.{8}$'))
+async def prelist_quotes_button(event):
+    chat_id, = struct.unpack("!xxq", event.data)
+
+    await event.answer(
+        url=f"http://t.me/{borg.me.username}?start=ql_{chat_id}"
+    )
+
+
+@borg.on(events.CallbackQuery(pattern=b'(?s)^q[\x01\x02].{16}$'))
+async def paginate_quotes_button(event):
+    direction, chat_id, quote_id = struct.unpack("!xBqq", event.data)
+
+    formatted, match_ids = fetch_quotes_near(
+        chat_id, quote_id, before=(direction == 1)
+    )
+    if not match_ids:
+        await event.answer('No more quotes to display')
+        return
+    await event.edit(
+        formatted,
+        parse_mode="html",
+        buttons=get_quote_list_buttons(chat_id, match_ids)
+    )
+
+
+@borg.on(borg.cmd(r"start ql_(-?\d+)$"))
+async def on_start_quote_list(event):
+    chat_id = event.pattern_match.group(1)
+
+    formatted, match_ids = fetch_quotes_near(chat_id, 0)
+    await event.respond(
+        formatted,
+        parse_mode="html",
+        buttons=get_quote_list_buttons(int(chat_id), match_ids)
+    )
+
+
+def get_quote_list_buttons(chat_id, match_ids):
+    prev_data = struct.pack("!cBqq", b"q", 1, chat_id, match_ids[0])
+    next_data = struct.pack("!cBqq", b"q", 2, chat_id, match_ids[-1])
+    return [[
+        types.KeyboardButtonCallback("<", prev_data),
+        types.KeyboardButtonCallback(">", next_data),
+    ]]
+
+
+def fetch_quotes_near(chat_id, quote_id, count=5, before=False):
+    quotes = storage.quotes[str(chat_id)]
+    quote_id = int(quote_id)
+    ids = sorted(int(id) for id in quotes.keys())
+    if before:
+        ids.reverse()
+
+    i = None
+    match_ids = []
+    condition = operator.lt if before else operator.gt
+    i = next((i for i, id in enumerate(ids) if condition(id, quote_id)), None)
+    if i is not None:
+        match_ids = ids[i:i + count]
+    if before:
+        match_ids.reverse()
+
+    formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
+    return formatted, match_ids
+
+
+def format_quote(id, quote, only_text=False, max_text_len=500):
+    text = quote["text"]
+    if len(text) > max_text_len:
+        text = f"{text[:max_text_len]}…"
+    formatted = f"<b>{html.escape(text)}</b>"
     if only_text:
         return formatted
 
