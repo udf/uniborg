@@ -253,7 +253,7 @@ def get_quote_list_buttons(chat_id, match_ids):
     ]]
 
 
-def fetch_quotes_near(chat_id, quote_id, count=5, before=False):
+def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
     quotes = storage.quotes[chat_id]
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
@@ -267,7 +267,7 @@ def fetch_quotes_near(chat_id, quote_id, count=5, before=False):
     return formatted, match_ids
 
 
-def format_quote(id, quote, only_text=False, max_text_len=500):
+def format_quote(id, quote, only_text=False, max_text_len=250):
     text = quote["text"]
     if len(text) > max_text_len:
         text = f"{text[:max_text_len]}…"
