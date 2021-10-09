@@ -33,6 +33,8 @@ for chat_id, quote_list in quotes.items():
     }
 storage.quotes = quotes
 
+quote_list_auths = set()
+
 
 @borg.on(borg.cmd(r"(q(uote)?|cite)"))
 @cooldown(15)
@@ -211,6 +213,8 @@ async def prelist_quotes(event):
 async def prelist_quotes_button(event):
     chat_id, = struct.unpack("!xxq", event.data)
 
+    quote_list_auths.add((chat_id, event.query.user_id))
+
     await event.answer(
         url=f"http://t.me/{borg.me.username}?start=ql_{chat_id}"
     )
@@ -228,7 +232,7 @@ async def paginate_quotes_button(event):
         return
 
     formatted, match_ids = fetch_quotes_near(
-        str(chat_id), quote_id, before=(direction == 1)
+        chat_id, quote_id, before=(direction == 1)
     )
     if not match_ids:
         await event.answer('No more quotes to display')
@@ -242,13 +246,18 @@ async def paginate_quotes_button(event):
 
 @borg.on(borg.cmd(r"start ql_(-?\d+)$"))
 async def on_start_quote_list(event):
-    chat_id = event.pattern_match.group(1)
+    chat_id = int(event.pattern_match.group(1))
+
+    try:
+        quote_list_auths.remove((chat_id, event.sender_id)) 
+    except KeyError:
+        return
 
     formatted, match_ids = fetch_quotes_near(chat_id, 0)
     await event.respond(
         formatted,
         parse_mode="html",
-        buttons=get_quote_list_buttons(int(chat_id), match_ids)
+        buttons=get_quote_list_buttons(chat_id, match_ids)
     )
 
 
@@ -262,7 +271,7 @@ def get_quote_list_buttons(chat_id, match_ids):
 
 
 def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
-    quotes = storage.quotes[chat_id]
+    quotes = storage.quotes[str(chat_id)]
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
 
