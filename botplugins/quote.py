@@ -18,7 +18,7 @@ from random import choice
 from datetime import datetime, timedelta
 import struct
 from collections import defaultdict
-from telethon import types, events
+from telethon import types, events, errors
 from uniborg.util import cooldown, blacklist
 
 
@@ -238,11 +238,16 @@ async def paginate_quotes_button(event):
     if not match_ids:
         await event.answer("No more quotes to display")
         return
-    await event.edit(
-        formatted,
-        parse_mode="html",
-        buttons=get_quote_list_buttons(chat_id, match_ids, fmt_range)
-    )
+    try:
+        await borg.edit_message(
+            await event.get_input_chat(),
+            event.query.msg_id,
+            formatted,
+            parse_mode="html",
+            buttons=get_quote_list_buttons(chat_id, match_ids, fmt_range)
+        )
+    except errors.MessageNotModifiedError:
+        await event.answer("No more quotes to display")
 
 
 @borg.on(events.CallbackQuery(pattern=b"(?s)^q\x04$"))
@@ -269,7 +274,7 @@ async def on_start_quote_list(event):
 
 def get_quote_list_buttons(chat_id, match_ids, fmt_range):
     if not match_ids:
-        return [[]]
+        return None
 
     prev_data = struct.pack("!cBqq", b"q", 1, chat_id, match_ids[0])
     next_data = struct.pack("!cBqq", b"q", 2, chat_id, match_ids[-1])
@@ -284,7 +289,10 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
     quotes = storage.quotes[str(chat_id)]
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
+    if not ids:
+        return "No quotes to display.", "", []
     ids_len = len(ids)
+    count = min(count, ids_len)
 
     # search for the index where quote_id is (or was, in case of deletion)
     start_i = next((i for i, id in enumerate(ids) if id >= quote_id), 0)
@@ -299,8 +307,6 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
 
     fmt_range = f"{round((start_i % ids_len) / ids_len * 100, 1)}%"
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
-    if not formatted:
-        formatted = "No quotes to display."
     return formatted, fmt_range, match_ids
 
 
