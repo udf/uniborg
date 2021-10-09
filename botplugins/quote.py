@@ -14,6 +14,7 @@ ADMIN ONLY:
 import html
 from asyncio import sleep
 from random import choice
+from datetime import datetime, timedelta
 import struct
 from collections import defaultdict
 from telethon import types, events
@@ -218,6 +219,13 @@ async def prelist_quotes_button(event):
 @borg.on(events.CallbackQuery(pattern=b'(?s)^q[\x01\x02].{16}$'))
 async def paginate_quotes_button(event):
     direction, chat_id, quote_id = struct.unpack("!xBqq", event.data)
+
+    msg = await event.get_message()
+    age = datetime.utcnow() - msg.date.replace(tzinfo=None)
+    if age >= timedelta(hours=1):
+        await event.edit("Sorry, this quote list has expired. "
+            "Please request a new list in the group.")
+        return
 
     formatted, match_ids = fetch_quotes_near(
         str(chat_id), quote_id, before=(direction == 1)
