@@ -262,6 +262,9 @@ async def on_start_quote_list(event):
 
 
 def get_quote_list_buttons(chat_id, match_ids):
+    if not match_ids:
+        return [[]]
+
     prev_data = struct.pack("!cBqq", b"q", 1, chat_id, match_ids[0])
     next_data = struct.pack("!cBqq", b"q", 2, chat_id, match_ids[-1])
     return [[
@@ -278,11 +281,13 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
     i = next((i for i, id in enumerate(ids) if id >= quote_id), 0)
     if before:
         i = max(i - count, 0)
-    elif ids[i] == quote_id:
+    elif ids and ids[i] == quote_id:
         i += 1
     match_ids = ids[i:i + count]
 
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
+    if not formatted:
+        formatted = 'No quotes to display.'
     return formatted, match_ids
 
 
