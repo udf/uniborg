@@ -7,6 +7,7 @@ Quotes are recalled with the text, the sender's name, and date it was originally
 patterns:
  • `q(uote)?|cite`
  • `(r(ecall)?|(get|fetch)quote)(?: ([\s\S]+))?`
+ • `ql|listquotes?`
 ADMIN ONLY:
  • `rmq(uote)? (\d+)(?:\:(\d+))?`
 """
@@ -180,7 +181,7 @@ async def recall_quote(event):
         pass
 
 
-@borg.on(borg.cmd(r"ql"))
+@borg.on(borg.cmd(r"ql|listquotes?"))
 async def prelist_quotes(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
