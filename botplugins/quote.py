@@ -8,7 +8,7 @@ patterns:
  • `q(uote)?|cite`
  • `(r(ecall)?|(get|fetch)quote)(?: ([\s\S]+))?`
 ADMIN ONLY:
-• `rmq(uote)? (\d+)(?:\:(\d+))?`
+ • `rmq(uote)? (\d+)(?:\:(\d+))?`
 """
 
 import html
@@ -209,7 +209,7 @@ async def prelist_quotes(event):
     )
 
 
-@borg.on(events.CallbackQuery(pattern=b'(?s)^q\x00.{8}$'))
+@borg.on(events.CallbackQuery(pattern=b"(?s)^q\x00.{8}$"))
 async def prelist_quotes_button(event):
     chat_id, = struct.unpack("!xxq", event.data)
 
@@ -220,7 +220,7 @@ async def prelist_quotes_button(event):
     )
 
 
-@borg.on(events.CallbackQuery(pattern=b'(?s)^q[\x01\x02].{16}$'))
+@borg.on(events.CallbackQuery(pattern=b"(?s)^q[\x01\x02].{16}$"))
 async def paginate_quotes_button(event):
     direction, chat_id, quote_id = struct.unpack("!xBqq", event.data)
 
@@ -235,7 +235,7 @@ async def paginate_quotes_button(event):
         chat_id, quote_id, before=(direction == 1)
     )
     if not match_ids:
-        await event.answer('No more quotes to display')
+        await event.answer("No more quotes to display")
         return
     await event.edit(
         formatted,
@@ -287,7 +287,7 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
 
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
     if not formatted:
-        formatted = 'No quotes to display.'
+        formatted = "No quotes to display."
     return formatted, match_ids
 
 
