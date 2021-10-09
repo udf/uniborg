@@ -181,7 +181,7 @@ async def recall_quote(event):
         pass
 
 
-@borg.on(borg.cmd(r"ql|listquotes?"))
+@borg.on(borg.cmd(r"(ql|listquotes?)"))
 async def prelist_quotes(event):
     blacklist = storage.blacklist or set()
     if event.chat_id in blacklist:
@@ -202,7 +202,7 @@ async def prelist_quotes(event):
     button_data = struct.pack("!cBq", b"q", 0, event.chat_id)
 
     await event.reply(
-        f"There are {len(quotes[chat])} quotes saved for this group"
+        f"There are `{len(quotes[chat])}` quotes saved for this group"
         "\nPress the button below to view all the saved quotes",
         buttons=[[
             types.KeyboardButtonCallback("View quotes", button_data)
@@ -232,7 +232,7 @@ async def paginate_quotes_button(event):
             "Please request a new list in the group.")
         return
 
-    formatted, match_ids = fetch_quotes_near(
+    formatted, fmt_range, match_ids = fetch_quotes_near(
         chat_id, quote_id, before=(direction == 1)
     )
     if not match_ids:
@@ -241,8 +241,13 @@ async def paginate_quotes_button(event):
     await event.edit(
         formatted,
         parse_mode="html",
-        buttons=get_quote_list_buttons(chat_id, match_ids)
+        buttons=get_quote_list_buttons(chat_id, match_ids, fmt_range)
     )
+
+
+@borg.on(events.CallbackQuery(pattern=b"(?s)^q\x04$"))
+async def do_nothing_button(event):
+    await event.answer()
 
 
 @borg.on(borg.cmd(r"start ql_(-?\d+)$"))
@@ -254,15 +259,15 @@ async def on_start_quote_list(event):
     except KeyError:
         return
 
-    formatted, match_ids = fetch_quotes_near(chat_id, 0)
+    formatted, fmt_range, match_ids = fetch_quotes_near(chat_id, 0)
     await event.respond(
         formatted,
         parse_mode="html",
-        buttons=get_quote_list_buttons(chat_id, match_ids)
+        buttons=get_quote_list_buttons(chat_id, match_ids, fmt_range)
     )
 
 
-def get_quote_list_buttons(chat_id, match_ids):
+def get_quote_list_buttons(chat_id, match_ids, fmt_range):
     if not match_ids:
         return [[]]
 
@@ -270,6 +275,7 @@ def get_quote_list_buttons(chat_id, match_ids):
     next_data = struct.pack("!cBqq", b"q", 2, chat_id, match_ids[-1])
     return [[
         types.KeyboardButtonCallback("<", prev_data),
+        types.KeyboardButtonCallback(fmt_range, b'q\x04'),
         types.KeyboardButtonCallback(">", next_data),
     ]]
 
@@ -278,18 +284,24 @@ def fetch_quotes_near(chat_id, quote_id, count=8, before=False):
     quotes = storage.quotes[str(chat_id)]
     quote_id = int(quote_id)
     ids = sorted(int(id) for id in quotes.keys())
+    ids_len = len(ids)
 
-    i = next((i for i, id in enumerate(ids) if id >= quote_id), 0)
+    # search for the index where quote_id is (or was, in case of deletion)
+    start_i = next((i for i, id in enumerate(ids) if id >= quote_id), 0)
     if before:
-        i = max(i - count, 0)
-    elif ids and ids[i] == quote_id:
-        i += 1
-    match_ids = ids[i:i + count]
+        # we're slicing starting `count` quotes before this one
+        start_i -= count
+    elif ids and ids[start_i] == quote_id:
+        # skip matched quote when going forward
+        start_i += 1
+    # fetch `count` quotes starting from `start_i`, wrapping around
+    match_ids = [ids[(start_i + i) % ids_len] for i in range(count)]
 
+    fmt_range = f"{round((start_i % ids_len) / ids_len * 100, 1)}%"
     formatted = "\n\n".join(format_quote(id, quotes[id]) for id in map(str, match_ids))
     if not formatted:
         formatted = "No quotes to display."
-    return formatted, match_ids
+    return formatted, fmt_range, match_ids
 
 
 def format_quote(id, quote, only_text=False, max_text_len=250):
