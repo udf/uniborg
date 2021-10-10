@@ -13,7 +13,7 @@ verify_msg = 'I am a human, this action was performed manually'
 
 @borg.on(events.NewMessage(
   incoming=True,
-  func=lambda e: e.is_private and e.sender_id in pending_uids and e.raw_text == verify_msg
+  func=lambda e: e.is_private and e.sender_id in pending_uids and verify_msg.lower() in e.raw_text.lower()
 ))
 async def on_verify(event):
   logger.info(f'{event.sender_id} has been verified')
