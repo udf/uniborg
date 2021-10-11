@@ -44,7 +44,7 @@ async def wait_for_verify(uid, chat):
 
 @borg.on(events.NewMessage(incoming=False, func=lambda e: e.is_private))
 async def on_msg(event):
-  uid = event.sender_id
+  uid = event.chat_id
   seen_users = storage.seen or set()
   if uid in seen_users:
     return
