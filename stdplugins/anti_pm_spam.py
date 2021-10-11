@@ -42,11 +42,18 @@ async def wait_for_verify(uid, chat):
   await borg(ReportSpamRequest(chat))
 
 
-@borg.on(events.NewMessage(incoming=True))
+@borg.on(events.NewMessage(incoming=False, func=lambda e: e.is_private))
 async def on_msg(event):
-  if not event.is_private:
+  uid = event.sender_id
+  seen_users = storage.seen or set()
+  if uid in seen_users:
     return
+  seen_users.add(uid)
+  storage.seen = seen_users
 
+
+@borg.on(events.NewMessage(incoming=True, func=lambda e: e.is_private))
+async def on_msg(event):
   uid = event.sender_id
   seen_users = storage.seen or set()
   if uid in seen_users:
