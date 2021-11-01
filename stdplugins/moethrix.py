@@ -27,11 +27,11 @@ vowels = (
 
 class MethrixParser(HTMLToTelegramParser):
   def handle_data(self, text):
-    text = re.sub(
-      '(?i)(m)([aeiouy])(thrix)',
-      lambda m: f'{m.group(1)}{choice(vowels)}{m.group(3)}',
-      text
-    )
+    def repl(m):
+      v = choice(vowels)
+      return f'{m[1]}{[v.lower, v.upper][m[2].isupper()]()}{m[3]}'
+
+    text = re.sub('(?i)(m)([aeiouy])(thrix)', repl, text)
     super().handle_data(text)
 
 
