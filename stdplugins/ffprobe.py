@@ -38,7 +38,9 @@ file_jobs: dict[str, FileJob] = {}
 
 async def http_handler(request):
   file_id = request.match_info.get('id')
-  job = file_jobs[file_id]
+  job = file_jobs.get(file_id, None)
+  if not job:
+    raise web.HTTPNotFound()
 
   response = web.StreamResponse(status=206)
   response.content_type = 'application/octet-stream'
