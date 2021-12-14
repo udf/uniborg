@@ -41,17 +41,20 @@ async def on_blocked(event):
 async def fetch_blocked_users():
     global blocked_user_ids
     while 1:
-        offset = 0
-        blocked_ids = set()
-        while 1:
-            blocked = await borg(GetBlockedRequest(offset=offset, limit=100))
-            offset += 100
-            for peer in blocked.blocked:
-                blocked_ids.add(utils.get_peer_id(peer.peer_id))
-            if not blocked.blocked:
-                break
-        blocked_user_ids = blocked_ids
-        await asyncio.sleep(REFETCH_TIME)
+        try:
+            offset = 0
+            blocked_ids = set()
+            while 1:
+                blocked = await borg(GetBlockedRequest(offset=offset, limit=100))
+                offset += 100
+                for peer in blocked.blocked:
+                    blocked_ids.add(utils.get_peer_id(peer.peer_id))
+                if not blocked.blocked:
+                    break
+            blocked_user_ids = blocked_ids
+            await asyncio.sleep(REFETCH_TIME)
+        except Exception as e:
+            logger.exception('Unhandled exception')
 
 
 asyncio.ensure_future(fetch_blocked_users())
