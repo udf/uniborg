@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import math
 from pathlib import Path
 import time
+from secrets import token_hex
 
 from uniborg.util import parse_pre
 
@@ -37,8 +38,7 @@ file_jobs: dict[str, FileJob] = {}
 
 
 async def http_handler(request):
-  file_id = request.match_info.get('id')
-  job = file_jobs.get(file_id, None)
+  job = file_jobs.get(request.match_info.get('id'), None)
   if not job:
     raise web.HTTPNotFound()
 
@@ -83,7 +83,7 @@ async def on_ffprobe(event):
   except TypeError:
     return
 
-  job_id = f'{event.chat_id}_{event.message.id}'
+  job_id = f'{event.chat_id}_{event.message.id}_{token_hex(4)}'
   file_name = target.file.name
   if not file_name:
     file_name = 'media' + (target.file.ext or '')
