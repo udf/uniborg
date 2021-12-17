@@ -126,6 +126,7 @@ async def who(event):
                     ))).participant
                 except UserNotParticipantError:
                     pass
+    who.phone = None
     yaml_text = yaml_format(who)
     if participant is not None:
         yaml_text += "\n"
