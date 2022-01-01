@@ -39,7 +39,7 @@ async def _(event):
 
         more = total - len(urls)
         more = f"({more} more)" if more > 0 else ""
-        spinner = await borg.upload_file("spinner.jpg")
+        spinner = await borg.upload_file("spinner.png")
         messages = await event.respond(
             f"https://www.pixiv.net/en/artworks/{gallery_id} {more}",
             file=[spinner] * len(urls)
