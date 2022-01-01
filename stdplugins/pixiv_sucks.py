@@ -53,4 +53,4 @@ async def _(event):
                 file = await response.read()
                 # Upload the image asynchronously so we can keep downloading
                 # concurrently
-                asyncio.create_task(m.edit(file=file))
+                asyncio.create_task(borg.edit_message(m, file=file))
