@@ -8,7 +8,7 @@ Turn YouTube Shorts links into regular video links
 from telethon import events
 
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https://youtube\.com/shorts/([\w-]{11})\?feature=share"))
+    pattern=r"^https://(?:www\.)?youtube\.com/shorts/([\w-]{11})(?:\?feature=share)?$"))
 async def _(event):
     video_id = event.pattern_match.group(1)
     await event.edit(f"https://www.youtube.com/watch?v={video_id}",
