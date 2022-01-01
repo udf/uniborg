@@ -18,6 +18,9 @@ import aiohttp
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https://i\.pximg\.net/.*/(?P<gallery>\d{8})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
 async def _(event):
+    if event.fwd_from:
+        return
+
     gallery_id = event.pattern_match.group("gallery")
     image_index = event.pattern_match.group("index")
 
@@ -42,7 +45,8 @@ async def _(event):
         spinner = await borg.upload_file("spinner.png")
         messages = await event.respond(
             f"https://www.pixiv.net/en/artworks/{gallery_id} {more}",
-            file=[spinner] * len(urls)
+            file=[spinner] * len(urls),
+            reply_to=event.message.reply_to_msg_id
         )
         await event.delete()
 
