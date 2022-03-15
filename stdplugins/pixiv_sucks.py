@@ -11,6 +11,18 @@ from telethon import events
 
 import aiohttp
 
+auth_cookie = storage.auth_cookie or ""
+
+@borg.on(borg.cmd(r"pixiv_auth_cookie", r"(?s)\s+(?P<args>\w+)"))
+async def _(event):
+    if event.fwd_from:
+        return
+    await event.delete()
+
+    global auth_cookie
+    auth_cookie = event.pattern_match["args"]
+    storage.auth_cookie = auth_cookie
+
 # Web gallery links, including those referring to a specific image
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https://www\.pixiv\.net/(?:\w+)/artworks/(?P<gallery>\d{8})(?:#big_(?P<index>\d+))?$"))
@@ -23,12 +35,17 @@ async def _(event):
 
     gallery_id = event.pattern_match.group("gallery")
     image_index = event.pattern_match.group("index")
+    logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}")
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://www.pixiv.net/ajax/illust/{gallery_id}/pages") as response:
+        async with session.get(
+            f"https://www.pixiv.net/ajax/illust/{gallery_id}/pages",
+            headers={ "User-Agent": "Mozilla/5.0" },
+            cookies={ "PHPSESSID": auth_cookie },
+        ) as response:
             index = await response.json()
         if index["error"]:
-            # TODO error message?
+            logger.warn(index["message"])
             return
         urls = [i["urls"]["regular"] for i in index["body"]]
         total = len(urls)
