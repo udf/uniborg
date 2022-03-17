@@ -134,6 +134,7 @@ async def on_audio_to_vn(event):
   await borg.send_file(
     await event.get_input_chat(),
     file=outfile,
+    reply_to=event.message.reply_to_msg_id if event.message.media else None,
     attributes=[
       DocumentAttributeAudio(
         duration=round(duration),
