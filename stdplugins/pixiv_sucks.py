@@ -25,7 +25,7 @@ async def _(event):
 
 # Web gallery links, including those referring to a specific image
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https://www\.pixiv\.net/(?:\w+)/artworks/(?P<gallery>\d{8})(?:#big_(?P<index>\d+))?$"))
+    pattern=r"^https://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{8})(?:#big_(?P<index>\d+))?$"))
 # Direct links to an image on the CDN
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https://i\.pximg\.net/.*/(?P<gallery>\d{8})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
@@ -61,7 +61,7 @@ async def _(event):
         more = f"({more} more)" if more > 0 else ""
         spinner = await borg.upload_file("spinner.png")
         messages = await event.respond(
-            f"https://www.pixiv.net/en/artworks/{gallery_id} {more}",
+            f"https://www.pixiv.net/artworks/{gallery_id} {more}",
             file=[spinner] * len(urls),
             reply_to=event.message.reply_to_msg_id
         )
