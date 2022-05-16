@@ -50,6 +50,17 @@ async def _(event):
     await event.respond(f"Added {event.chat_id} to allowed groups")
 
 
+@borg.on(borg.admin_cmd(r"tl_allowed_groups"))
+async def _(event):
+    groups = {}
+    for group in allowed_groups:
+        entity = await borg.get_entity(group)
+        groups[group] = entity.title
+
+    groups = [ f"`{k}`: {v}" for k, v in groups.items() ]
+    await event.respond("\n".join(groups))
+
+
 @borg.on(borg.cmd(r"tl", r"(?s)(?:\s+(?P<args>.*))?"))
 async def _(event):
     if borg.me.bot and event.chat_id not in allowed_groups:
