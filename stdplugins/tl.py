@@ -15,6 +15,8 @@ from google.oauth2 import service_account
 from google.cloud import translate_v3 as translate
 from google.cloud import texttospeech
 
+from uniborg import util
+
 
 PREFERRED_LANGUAGE = "en"
 
@@ -22,8 +24,15 @@ PREFERRED_LANGUAGE = "en"
 mimetypes.add_type('audio/mpeg', '.borg+tts')
 
 
-credentials = service_account.Credentials.from_service_account_file(
-    "google_cloud_key.json")
+try:
+    credentials = service_account.Credentials.from_service_account_file(
+        "google_cloud_key.json")
+except FileNotFoundError:
+    logger.warn(
+        "Google Cloud API key not found, this plugin will be unavailable."
+    )
+    raise util.StopImport
+
 tl_client = translate.TranslationServiceAsyncClient(credentials=credentials)
 tl_parent = f"projects/{credentials.project_id}"
 tts_client = texttospeech.TextToSpeechAsyncClient(credentials=credentials)

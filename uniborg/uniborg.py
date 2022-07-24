@@ -13,6 +13,7 @@ import telethon.events
 
 from .storage import Storage
 from . import hacks
+from . import util
 
 
 class Uniborg(TelegramClient):
@@ -69,7 +70,10 @@ class Uniborg(TelegramClient):
         mod.logger = logging.getLogger(shortname)
         mod.storage = self.storage(f"{self._name}/{shortname}")
 
-        spec.loader.exec_module(mod)
+        try:
+            spec.loader.exec_module(mod)
+        except util.StopImport:
+            return
         self._plugins[shortname] = mod
 
         if callable(getattr(mod, 'load', None)):
