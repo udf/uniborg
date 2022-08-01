@@ -6,12 +6,22 @@ Download images from pixiv links and post them directly
 """
 
 import asyncio
+import io
+import os
+import tempfile
+import zipfile
 
 from telethon import events
 
 import aiohttp
 
 auth_cookie = storage.auth_cookie or ""
+
+# This is required for the pixiv CDN to actually give us the images
+cdn_headers = { "Referer": "https://www.pixiv.net/" }
+
+ugoira_loading_url = \
+    "https://cdn.donmai.us/original/d6/f7/__bongo_cat_original_drawn_by_keke_kokorokeke__d6f72938017fabe7f66a1cc7805231fb.mp4"
 
 @borg.on(borg.cmd(r"pixiv_auth_cookie", r"(?s)\s+(?P<args>\w+)"))
 async def _(event):
@@ -38,6 +48,15 @@ async def _(event):
     logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}")
 
     async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"https://www.pixiv.net/ajax/illust/{gallery_id}/ugoira_meta",
+            headers={ "User-Agent": "Mozilla/5.0" },
+            cookies={ "PHPSESSID": auth_cookie },
+        ) as response:
+            if response.status != 404:
+                await ugoira(event, gallery_id, session, await response.json())
+                return
+
         async with session.get(
             f"https://www.pixiv.net/ajax/illust/{gallery_id}/pages",
             headers={ "User-Agent": "Mozilla/5.0" },
@@ -67,11 +86,57 @@ async def _(event):
         )
         await event.delete()
 
-        # This is required for the pixiv CDN to actually give us the images
-        headers = { "Referer": "https://www.pixiv.net/" }
         for u, m in zip(urls, messages):
-            async with session.get(u, headers=headers) as response:
+            async with session.get(u, headers=cdn_headers) as response:
                 file = await response.read()
                 # Upload the image asynchronously so we can keep downloading
                 # concurrently
                 asyncio.create_task(borg.edit_message(m, file=file))
+
+async def ugoira(event, gallery_id, session, metadata):
+    if metadata["error"]:
+        logger.warn(metadata["message"])
+        return
+
+    message = await event.respond(
+        f"https://www.pixiv.net/artworks/{gallery_id}",
+        file=ugoira_loading_url,
+        reply_to=event.message.reply_to_msg_id
+    )
+    await event.delete()
+
+    metadata = metadata["body"]
+    with tempfile.TemporaryDirectory(prefix="ugoira.") as tmpdir:
+        async with session.get(metadata["src"], headers=cdn_headers) as response:
+            with io.BytesIO(await response.read()) as bio:
+                with zipfile.ZipFile(bio) as zf:
+                    zf.extractall(tmpdir)
+
+        seqfile = os.path.join(tmpdir, "sequence.txt")
+        with open(seqfile, "w") as sf:
+            for frame in metadata["frames"]:
+                sf.write(f"file {frame['file']}\n")
+                sf.write(f"duration {frame['delay'] / 1000}\n")
+
+            #  Due to a quirk, the last image has to be specified twice
+            # - the 2nd time without any duration directive
+            # (https://trac.ffmpeg.org/wiki/Slideshow)
+            last_frame = metadata["frames"][-1]
+            sf.write(f"file {last_frame['file']}\n")
+
+        outfile = os.path.join(tmpdir, "ugoira.mp4")
+        proc = await asyncio.create_subprocess_exec(
+            "ffmpeg",
+            "-y",
+            "-f", "concat",
+            "-i", seqfile,
+            "-c:v", "libx264",
+            "-vsync", "vfr",
+            "-pix_fmt", "yuv420p",
+            # Ensure resolution is divisible by 2
+            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+            outfile,
+        )
+        await proc.wait()
+
+        await message.edit(file=outfile)
