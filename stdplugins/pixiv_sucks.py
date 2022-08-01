@@ -20,8 +20,10 @@ auth_cookie = storage.auth_cookie or ""
 # This is required for the pixiv CDN to actually give us the images
 cdn_headers = { "Referer": "https://www.pixiv.net/" }
 
+image_loading_url = \
+    "https://cdn.donmai.us/original/e8/34/__ptilopsis_arknights_drawn_by_kuhl_notes__e83431cd42e85cde0d7f67b35e6022d7.png"
 ugoira_loading_url = \
-    "https://cdn.donmai.us/original/d6/f7/__bongo_cat_original_drawn_by_keke_kokorokeke__d6f72938017fabe7f66a1cc7805231fb.mp4"
+    "https://cdn.donmai.us/original/0d/e4/__ptilopsis_arknights_drawn_by_kuhl_notes__0de44fb72977db0c0594244cdc10ee61.mp4"
 
 @borg.on(borg.cmd(r"pixiv_auth_cookie", r"(?s)\s+(?P<args>\w+)"))
 async def _(event):
@@ -78,10 +80,10 @@ async def _(event):
 
         more = total - len(urls)
         more = f"({more} more)" if more > 0 else ""
-        spinner = await borg.upload_file("spinner.png")
+        loading = await borg.upload_file("loading.jpg")
         messages = await event.respond(
             f"https://www.pixiv.net/artworks/{gallery_id} {more}",
-            file=[spinner] * len(urls),
+            file=[loading] * len(urls),
             reply_to=event.message.reply_to_msg_id
         )
         await event.delete()
