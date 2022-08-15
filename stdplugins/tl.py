@@ -46,6 +46,8 @@ async def fetch_supported_languages():
     )).languages
     global tl_langs
     tl_langs = { lang.language_code.lower(): lang for lang in langs }
+    if tl_langs.get("zh-cn") is None:
+        tl_langs["zh-cn"] = tl_langs["zh"]
 asyncio.create_task(fetch_supported_languages())
 
 
