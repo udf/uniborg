@@ -13,6 +13,9 @@ async def _(event):
     if not isinstance(media, MessageMediaDocument):
         return
 
+    if media.document.mime_type != "application/x-tgsticker":
+        return
+
     # This means the premium animation shouldn't be played so we allow it
     if media.nopremium:
         return
