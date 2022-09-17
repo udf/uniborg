@@ -45,6 +45,9 @@ async def _(event):
     if event.fwd_from:
         return
 
+    if event.message.media is not None:
+        return
+
     gallery_id = event.pattern_match.group("gallery")
     image_index = event.pattern_match.group("index")
     logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}")
