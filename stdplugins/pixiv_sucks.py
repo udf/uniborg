@@ -45,7 +45,7 @@ async def _(event):
     if event.fwd_from:
         return
 
-    if event.message.media is not None:
+    if event.media and not event.web_preview:
         return
 
     gallery_id = event.pattern_match.group("gallery")
