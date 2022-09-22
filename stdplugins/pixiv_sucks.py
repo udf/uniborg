@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 
 from telethon import events
+from telethon import types
 
 import aiohttp
 
@@ -45,7 +46,7 @@ async def _(event):
     if event.fwd_from:
         return
 
-    if event.media and not event.web_preview:
+    if event.media and not isinstance(event.media, types.MessageMediaWebPage):
         return
 
     gallery_id = event.pattern_match.group("gallery")
