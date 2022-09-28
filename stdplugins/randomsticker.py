@@ -19,7 +19,8 @@ def choser(cmd, pack, blacklist={}):
         if docs is None:
             docs = [
                 utils.get_input_document(x)
-                for x in (await borg(functions.messages.GetStickerSetRequest(types.InputStickerSetShortName(pack)))).documents
+                for x in (await
+                    borg(functions.messages.GetStickerSetRequest(types.InputStickerSetShortName(pack), hash=0))).documents
                 if x.id not in blacklist
             ]
 
