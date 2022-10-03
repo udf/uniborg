@@ -38,10 +38,12 @@ async def _(event):
 
 # Web gallery links, including those referring to a specific image
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+))?$"))
+    pattern=r"^https?://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+)|#manga)?$"))
+@borg.on(events.NewMessage(outgoing=True,
+    pattern=r"^https?://www\.pixiv\.net/member_illust.php?.*illust_id=(?P<gallery>\d{6,9})"))
 # Direct links to an image on the CDN
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https://i\.pximg\.net/.*/(?P<gallery>\d{6,9})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
+    pattern=r"^https?://i\.pximg\.net/.*/(?P<gallery>\d{6,9})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
 async def _(event):
     if event.fwd_from:
         return
@@ -50,7 +52,10 @@ async def _(event):
         return
 
     gallery_id = event.pattern_match.group("gallery")
-    image_index = event.pattern_match.group("index")
+    try:
+        image_index = event.pattern_match.group("index")
+    except IndexError:
+        image_index = None
     logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}")
 
     async with aiohttp.ClientSession() as session:
