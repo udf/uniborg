@@ -38,7 +38,7 @@ async def _(event):
 
 # Web gallery links, including those referring to a specific image
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https?://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+)|#manga)?$"))
+    pattern=r"^https?://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+)|#manga|#range(?P<range>\d+-\d+))?$"))
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https?://www\.pixiv\.net/member_illust.php?.*illust_id=(?P<gallery>\d{6,9})"))
 # Direct links to an image on the CDN
@@ -56,7 +56,11 @@ async def _(event):
         image_index = event.pattern_match.group("index")
     except IndexError:
         image_index = None
-    logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}")
+    try:
+        subrange = event.pattern_match.group("range")
+    except IndexError:
+        subrange = None
+    logger.info(f"Processing pixiv gallery #{gallery_id}, image #{image_index}, range {subrange}")
 
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -80,12 +84,16 @@ async def _(event):
         urls = [i["urls"]["regular"] for i in index["body"]]
         total = len(urls)
 
-        # If a specific image was linked, only send that
-        if image_index is not None:
+        if subrange is not None:
+            # If a range was specified, send the entire range
+            start, end = subrange.split("-")
+            urls = urls[int(start):int(end) + 1]
+        elif image_index is not None:
+            # If a specific image was linked, only send that
             urls = [urls[int(image_index)]]
-
-        # Limit to 10 images (a single Telegram album)
-        urls = urls[:10]
+        else:
+            # Limit to 10 images (a single Telegram album)
+            urls = urls[:10]
 
         more = total - len(urls)
         more = f"({more} more)" if more > 0 else ""
