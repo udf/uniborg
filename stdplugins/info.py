@@ -85,7 +85,11 @@ def yaml_format(obj, indent=0):
     else:
         return repr(obj)
 
-    return ''.join(result)
+    message = ''.join(result)
+    if len(message) > 4096:
+        logger.warn(f"Truncating info dump:\n{message}")
+        message = message[:4096 - 1] + "…"
+    return message
 
 
 @borg.on(borg.cmd("info"))
