@@ -59,7 +59,7 @@ def parse_subreddit(m):
     entity = MessageEntityTextUrl(
         offset=m.start(2),
         length=len(text),
-        url=f'reddit.com{text}'
+        url=f'https://old.reddit.com{text}'
     )
     return m.group(1) + text, entity
 
