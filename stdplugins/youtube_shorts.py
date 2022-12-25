@@ -13,5 +13,5 @@ from telethon import events
     pattern=r"^https://piped\.kavin\.rocks/watch\?v=([\w-]{11})$"))
 async def _(event):
     video_id = event.pattern_match.group(1)
-    await event.edit(f"https://www.youtube.com/watch?v={video_id}",
+    await event.edit(f"https://youtu.be/{video_id}",
             link_preview=True)
