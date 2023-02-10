@@ -45,6 +45,8 @@ async def _(event):
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https?://i\.pximg\.net/.*/(?P<gallery>\d{6,9})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
 async def _(event):
+    return
+
     if event.fwd_from:
         return
 
@@ -113,6 +115,8 @@ async def _(event):
                 asyncio.create_task(borg.edit_message(m, file=file))
 
 async def ugoira(event, gallery_id, session, metadata):
+    return
+
     if metadata["error"]:
         logger.warn(metadata["message"])
         return
