@@ -6,7 +6,6 @@ Download images from pixiv links and post them directly
 """
 
 import asyncio
-import io
 import os
 import tempfile
 import zipfile
@@ -18,13 +17,8 @@ import aiohttp
 
 auth_cookie = storage.auth_cookie or ""
 
-# This is required for the pixiv CDN to actually give us the images
-cdn_headers = { "Referer": "https://www.pixiv.net/" }
-
 image_loading_url = \
     "https://cdn.donmai.us/original/e8/34/__ptilopsis_arknights_drawn_by_kuhl_notes__e83431cd42e85cde0d7f67b35e6022d7.png"
-ugoira_loading_url = \
-    "https://cdn.donmai.us/original/0d/e4/__ptilopsis_arknights_drawn_by_kuhl_notes__0de44fb72977db0c0594244cdc10ee61.mp4"
 
 @borg.on(borg.cmd(r"pixiv_auth_cookie", r"(?s)\s+(?P<args>\w+)"))
 async def _(event):
@@ -109,25 +103,23 @@ async def _(event):
             asyncio.create_task(m.edit(file=u))
 
 async def ugoira(event, gallery_id, session, metadata):
-    return
-
     if metadata["error"]:
         logger.warn(metadata["message"])
         return
 
     message = await event.respond(
         f"https://www.pixiv.net/artworks/{gallery_id}",
-        file=ugoira_loading_url,
+        file=metadata["body"]["src"],
         reply_to=event.message.reply_to_msg_id
     )
     await event.delete()
 
     metadata = metadata["body"]
     with tempfile.TemporaryDirectory(prefix="ugoira.") as tmpdir:
-        async with session.get(metadata["src"], headers=cdn_headers) as response:
-            with io.BytesIO(await response.read()) as bio:
-                with zipfile.ZipFile(bio) as zf:
-                    zf.extractall(tmpdir)
+        zip_path = os.path.join(tmpdir, "ugoira.zip")
+        await message.download_media(file=zip_path)
+        with zipfile.ZipFile(zip_path) as zf:
+            zf.extractall(tmpdir)
 
         seqfile = os.path.join(tmpdir, "sequence.txt")
         with open(seqfile, "w") as sf:
