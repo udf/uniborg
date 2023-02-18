@@ -45,8 +45,6 @@ async def _(event):
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https?://i\.pximg\.net/.*/(?P<gallery>\d{6,9})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
 async def _(event):
-    return
-
     if event.fwd_from:
         return
 
@@ -108,11 +106,7 @@ async def _(event):
         await event.delete()
 
         for u, m in zip(urls, messages):
-            async with session.get(u, headers=cdn_headers) as response:
-                file = await response.read()
-                # Upload the image asynchronously so we can keep downloading
-                # concurrently
-                asyncio.create_task(borg.edit_message(m, file=file))
+            asyncio.create_task(m.edit(file=u))
 
 async def ugoira(event, gallery_id, session, metadata):
     return
