@@ -58,6 +58,7 @@ async def _(event):
                 message_text,
                 file=url,
                 reply_to=event.message.reply_to_msg_id,
+                parse_mode=None,
             )
         except:
             message_text += "\n(Telegram rejected the upload)"
