@@ -5,7 +5,7 @@
 .slines to split a multiline message into single line messages
 """
 
-@borg.on(borg.cmd(r"slines", r"(?sm)(?:\s+(?P<args>.*))"))
+@borg.on(borg.cmd(r"slines", r"(?:\s+(?P<args>.*))", "sm"))
 async def _(event):
     await event.delete()
     for line in event.pattern_match["args"].splitlines():

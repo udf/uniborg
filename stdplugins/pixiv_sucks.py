@@ -20,7 +20,7 @@ auth_cookie = storage.auth_cookie or ""
 image_loading_url = \
     "https://cdn.donmai.us/original/e8/34/__ptilopsis_arknights_drawn_by_kuhl_notes__e83431cd42e85cde0d7f67b35e6022d7.png"
 
-@borg.on(borg.cmd(r"pixiv_auth_cookie", r"(?s)\s+(?P<args>\w+)"))
+@borg.on(borg.admin_cmd(r"pixiv_auth_cookie", r"\s+(?P<args>\w+)"))
 async def _(event):
     if event.fwd_from:
         return
