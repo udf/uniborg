@@ -18,7 +18,7 @@ def fix_tag_string(tag_string):
     return " ".join("#" + tag for tag in tag_string.split())
 
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https?://danbooru\.donmai\.us/posts/(?P<id>\d+)"))
+    pattern=r"^https?://(dan|safe)booru\.donmai\.us/posts/(?P<id>\d+)"))
 async def _(event):
     if event.fwd_from:
         return
