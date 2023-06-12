@@ -82,13 +82,13 @@ PARSED_ENTITIES = (
 # A matcher is a tuple of (regex pattern, parse function)
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
-    (DEFAULT_URL_RE, parse_url_match),
-    (get_tag_parser('**', MessageEntityBold)),
-    (get_tag_parser('__', MessageEntityItalic)),
-    (get_tag_parser('```', partial(MessageEntityPre, language=''))),
-    (get_tag_parser('`', MessageEntityCode)),
+    #(DEFAULT_URL_RE, parse_url_match),
+    #(get_tag_parser('**', MessageEntityBold)),
+    #(get_tag_parser('__', MessageEntityItalic)),
+    #(get_tag_parser('```', partial(MessageEntityPre, language=''))),
+    #(get_tag_parser('`', MessageEntityCode)),
     (re.compile(r'\+\+\b(.+?)\b\+\+'), parse_aesthetics),
-    (re.compile(r'~~\b(.+?)\b~~'), parse_strikethrough),
+    #(re.compile(r'~~\b(.+?)\b~~'), parse_strikethrough),
     (re.compile(r'@@\b(.+?)\b@@'), parse_enclosing_circle),
     (re.compile(r'([^/\w]|^)(/?(r/\w{3,21}\b))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
