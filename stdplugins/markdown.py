@@ -31,7 +31,7 @@ def get_tag_parser(tag, entity):
     def tag_parser(m):
         return m.group(1), entity(offset=m.start(), length=len(m.group(1)))
     tag = re.escape(tag)
-    return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
+    return re.compile(tag + r'\b(.+?)\b' + tag, re.DOTALL), tag_parser
 
 
 def parse_aesthetics(m):
@@ -87,9 +87,9 @@ MATCHERS = [
     (get_tag_parser('__', MessageEntityItalic)),
     (get_tag_parser('```', partial(MessageEntityPre, language=''))),
     (get_tag_parser('`', MessageEntityCode)),
-    (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
-    (re.compile(r'~~(.+?)~~'), parse_strikethrough),
-    (re.compile(r'@@(.+?)@@'), parse_enclosing_circle),
+    (re.compile(r'\+\+\b(.+?)\b\+\+'), parse_aesthetics),
+    (re.compile(r'~~\b(.+?)\b~~'), parse_strikethrough),
+    (re.compile(r'@@\b(.+?)\b@@'), parse_enclosing_circle),
     (re.compile(r'([^/\w]|^)(/?(r/\w{3,21}\b))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]
