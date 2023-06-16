@@ -24,7 +24,7 @@ async def _(event):
 
     message = _last_messages[event.chat_id]
     chat = await event.get_input_chat()
-    await asyncio.wait([
+    await asyncio.gather(
         borg.delete_messages(chat, [event.id, message.id]),
-        borg.send_message(chat, message, reply_to=event.reply_to_msg_id)
-    ])
+        borg.send_message(chat, message, reply_to=event.reply_to_msg_id),
+    )
