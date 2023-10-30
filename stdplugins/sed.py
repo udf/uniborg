@@ -64,8 +64,10 @@ async def doit(message, match):
             await message.reply(f'{HEADER}Unknown flag: {f}')
             return
 
-    def substitute(m):
-        if s := m.raw_text:
+    def substitute(m, quote=None):
+        if quote:
+            s = quote
+        elif s := m.raw_text:
             if s.startswith(HEADER):
                 s = s[len(HEADER):]
         else:
@@ -80,7 +82,10 @@ async def doit(message, match):
         substitution = None
         if message.is_reply:
             msg = await message.get_reply_message()
-            substitution = substitute(msg)
+            substitution = substitute(
+                msg,
+                getattr(message.reply_to, "quote_text"),
+            )
         else:
             for msg in reversed(last_msgs[message.chat_id]):
                 substitution = substitute(msg)
