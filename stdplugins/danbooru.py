@@ -62,6 +62,6 @@ async def _(event):
             )
         except:
             message_text += "\n(Telegram rejected the upload)"
-            await event.edit(message_text)
+            await event.edit(message_text, parse_mode=None)
         else:
             await event.delete()
