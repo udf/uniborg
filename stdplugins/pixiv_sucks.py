@@ -32,9 +32,9 @@ async def _(event):
 
 # Web gallery links, including those referring to a specific image
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https?://www\.pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+)|#manga|#range(?P<range>\d+-\d+))?$"))
+    pattern=r"^https?://(?:www\.)?pixiv\.net/(?:\w+/)?artworks/(?P<gallery>\d{6,9})(?:#big_(?P<index>\d+)|#manga|#range(?P<range>\d+-\d+))?$"))
 @borg.on(events.NewMessage(outgoing=True,
-    pattern=r"^https?://www\.pixiv\.net/member_illust.php?.*illust_id=(?P<gallery>\d{6,9})"))
+    pattern=r"^https?://(?:www\.)?pixiv\.net/member_illust.php?.*illust_id=(?P<gallery>\d{6,9})"))
 # Direct links to an image on the CDN
 @borg.on(events.NewMessage(outgoing=True,
     pattern=r"^https?://i\.pximg\.net/.*/(?P<gallery>\d{6,9})_p(?P<index>\d+)(?:\w+)?\.(?:png|jpg)$"))
