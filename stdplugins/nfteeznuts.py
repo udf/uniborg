@@ -11,11 +11,12 @@ from telethon.tl.types import MessageMediaWebPage
 
 generic_filters = [
     re.compile(r"(?i)claim your first \w+ and lets p2e"),
+    re.compile(r"(?i)Get your free \w+ Cats (?:\w+ Special Edition )?NFT today – a charming collection of unique, cute digital cat art\. Perfect for cat lovers and NFT collectors seeking something special"),
 ]
 
 dot_io_filters = [
     re.compile(r"(?i)\bairdrops?\b"),
-    re.compile(r"(?i)\b(get|claim|free)\b.*\bnfts?\b"),
+    re.compile(r"(?i)\b(?:get|claim|free)\b.*\bnfts?\b"),
 ]
 
 async def is_spam(event):
