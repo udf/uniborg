@@ -13,6 +13,7 @@ generic_filters = [
     re.compile(r"(?i)claim your first \w+ and lets p2e"),
     re.compile(r"(?i)Ethereum Layer 2 Rollup platform"),
     re.compile(r"(?i)Get your free \w+ Cats (?:\w+ Special Edition )?NFT today – a charming collection of unique, cute digital cat art\. Perfect for cat lovers and NFT collectors seeking something special"),
+    re.compile(r"(?i)LUNAR NEW YEAR: Claim your Dragons and embarking on an enchanting journey into play-to-earn adventures\."),
 ]
 
 dot_io_filters = [
