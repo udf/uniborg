@@ -7,10 +7,10 @@ import logging
 from uniborg import Uniborg
 import api_key
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 borg = Uniborg(
-    "cath",
+    "stdborg",
     plugin_path="stdplugins_dev",
     connection_retries=None,
     api_id=api_key.id,
