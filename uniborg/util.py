@@ -12,6 +12,9 @@ from telethon.tl.types import MessageEntityPre
 from telethon.tl.functions.messages import GetPeerDialogsRequest
 
 
+class StopImport(Exception):
+    pass
+
 async def is_read(borg, entity, message, is_out=None):
     """
     Returns True if the given message (or id) has been read

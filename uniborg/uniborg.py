@@ -13,6 +13,7 @@ import telethon.events
 
 from .storage import Storage
 from . import hacks
+from . import util
 
 
 class Uniborg(TelegramClient):
@@ -69,7 +70,10 @@ class Uniborg(TelegramClient):
         mod.logger = logging.getLogger(shortname)
         mod.storage = self.storage(f"{self._name}/{shortname}")
 
-        spec.loader.exec_module(mod)
+        try:
+            spec.loader.exec_module(mod)
+        except util.StopImport:
+            return
         self._plugins[shortname] = mod
 
         if callable(getattr(mod, 'load', None)):
@@ -119,7 +123,7 @@ class Uniborg(TelegramClient):
 
         return fut
 
-    def cmd(self, command, pattern=None, admin_only=False):
+    def cmd(self, command, pattern=None, flags="", admin_only=False):
         command = fr'(?:{command})'
         if self.me.bot:
             command = fr'{command}(?:@{self.me.username})?'
@@ -130,10 +134,10 @@ class Uniborg(TelegramClient):
             pattern = command
 
         if not self.me.bot:
-            pattern=fr'^\.{pattern}'
+            pattern = fr'^\.{pattern}'
         else:
-            pattern=fr'^\/{pattern}'
-        pattern=fr'(?i){pattern}$'
+            pattern = fr'^\/{pattern}'
+        pattern = fr'(?i{flags}){pattern}$'
 
         if self.me.bot and admin_only:
             allowed_users = self.admins
@@ -146,5 +150,5 @@ class Uniborg(TelegramClient):
             pattern=pattern
         )
 
-    def admin_cmd(self, command, pattern=None):
+    def admin_cmd(self, command, pattern=None, flags=""):
         return self.cmd(command, pattern, admin_only=True)
