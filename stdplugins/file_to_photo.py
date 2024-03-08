@@ -15,7 +15,7 @@ executor = concurrent.futures.ThreadPoolExecutor()
 
 
 # From: https://github.com/Qwerty-Space/tanyabot/blob/d481c43baceffa2600aee950b33b23e52e10aa2c/plugins/global_functions.py
-def downscale(fp, max_w=1280, max_h=1280, format="PNG"):
+def downscale(fp, max_w=3840, max_h=3840, format="PNG"):
     im = Image.open(fp)
     resolution = im.size
     outfile = BytesIO()

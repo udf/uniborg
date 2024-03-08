@@ -37,6 +37,14 @@ class FileJob:
 file_jobs: dict[str, FileJob] = {}
 
 
+def sizeof_fmt(num, suffix="B"):
+  for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+    if abs(num) < 1024.0:
+      return f"{num:3.1f}{unit}{suffix}"
+    num /= 1024.0
+  return f"{num:.1f}Yi{suffix}"
+
+
 async def http_handler(request):
   job = file_jobs.get(request.match_info.get('id'), None)
   if not job:
@@ -53,20 +61,16 @@ async def http_handler(request):
 
   await response.prepare(request)
 
-  bytes_read = 0
-  try:
-    async for chunk in borg.iter_download(
-      job.file,
-      offset=range_start,
-      limit=math.ceil(bytes_to_read / CHUNK_SIZE)
-    ):
-      bytes_read += len(chunk)
-      if len(chunk) > bytes_to_read:
-        chunk = chunk[:bytes_to_read]
-      await response.write(chunk)
-      bytes_to_read -= len(chunk)
-  finally:
-    job.bytes_downloaded += bytes_read
+  async for chunk in borg.iter_download(
+    job.file,
+    offset=range_start,
+    limit=math.ceil(bytes_to_read / CHUNK_SIZE)
+  ):
+    job.bytes_downloaded += len(chunk)
+    if len(chunk) > bytes_to_read:
+      chunk = chunk[:bytes_to_read]
+    await response.write(chunk)
+    bytes_to_read -= len(chunk)
 
   return response
 
@@ -103,7 +107,7 @@ async def on_ffprobe(event):
   output = (
     f"{output.decode('utf8')}"
     f"\n{stderr.decode('utf8')}"
-    f'\n(downloaded {file_jobs[job_id].bytes_downloaded // 1024} KB'
+    f'\n(downloaded {sizeof_fmt(file_jobs[job_id].bytes_downloaded)} / {sizeof_fmt(file_jobs[job_id].size)}'
     f' in {round(time.time() - start_time, 1)}s)'
   )
   del file_jobs[job_id]

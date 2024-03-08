@@ -1,5 +1,7 @@
 import asyncio
 
+from telethon import functions, types
+
 emoji_documents = {
   'pink' : 6003623690007220779,
   'white' : 6005930113214976252,
@@ -19,7 +21,7 @@ async def main():
   while 1:
     for document_id in document_order:
       if document_id != previous_doc:
-        await client(functions.account.UpdateEmojiStatusRequest(
+        await borg(functions.account.UpdateEmojiStatusRequest(
           emoji_status=types.EmojiStatus(document_id=document_id)
         ))
       previous_doc = document_id

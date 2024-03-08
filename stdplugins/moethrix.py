@@ -2,10 +2,10 @@
 from random import choice
 import re
 
-from telethon import events, helpers
-from telethon.extensions.html import (
-  HTMLToTelegramParser, unparse, _add_surrogate, _del_surrogate
-)
+from telethon import events
+from telethon.helpers import strip_text, add_surrogate, del_surrogate
+from telethon.extensions.html import HTMLToTelegramParser, unparse
+
 
 # generated with (?m)^[^aioue]([aeiouy]+).
 vowels = (
@@ -41,9 +41,9 @@ def moothrix_parse(html):
     return html, []
 
   parser = MethrixParser()
-  parser.feed(_add_surrogate(html))
-  text = helpers.strip_text(parser.text, parser.entities)
-  return _del_surrogate(text), parser.entities
+  parser.feed(add_surrogate(html))
+  text = strip_text(parser.text, parser.entities)
+  return del_surrogate(text), parser.entities
 
 
 @borg.on(events.NewMessage(outgoing=True, pattern=re.compile('(?i)m[aeiou]thrix').search))
