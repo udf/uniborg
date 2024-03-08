@@ -31,7 +31,7 @@ def get_tag_parser(tag, entity):
     def tag_parser(m):
         return m.group(1), entity(offset=m.start(), length=len(m.group(1)))
     tag = re.escape(tag)
-    return re.compile(tag + r'(.+?)' + tag, re.DOTALL), tag_parser
+    return re.compile(tag + r'\b(.+?)\b' + tag, re.DOTALL), tag_parser
 
 
 def parse_aesthetics(m):
@@ -59,7 +59,7 @@ def parse_subreddit(m):
     entity = MessageEntityTextUrl(
         offset=m.start(2),
         length=len(text),
-        url=f'reddit.com{text}'
+        url=f'https://old.reddit.com{text}'
     )
     return m.group(1) + text, entity
 
@@ -82,15 +82,15 @@ PARSED_ENTITIES = (
 # A matcher is a tuple of (regex pattern, parse function)
 # where the parse function takes the match and returns (text, entity)
 MATCHERS = [
-    (DEFAULT_URL_RE, parse_url_match),
-    (get_tag_parser('**', MessageEntityBold)),
-    (get_tag_parser('__', MessageEntityItalic)),
-    (get_tag_parser('```', partial(MessageEntityPre, language=''))),
-    (get_tag_parser('`', MessageEntityCode)),
-    (re.compile(r'\+\+(.+?)\+\+'), parse_aesthetics),
-    (re.compile(r'~~(.+?)~~'), parse_strikethrough),
-    (re.compile(r'@@(.+?)@@'), parse_enclosing_circle),
-    (re.compile(r'([^/\w]|^)(/?(r/\w+))'), parse_subreddit),
+    #(DEFAULT_URL_RE, parse_url_match),
+    #(get_tag_parser('**', MessageEntityBold)),
+    #(get_tag_parser('__', MessageEntityItalic)),
+    #(get_tag_parser('```', partial(MessageEntityPre, language=''))),
+    #(get_tag_parser('`', MessageEntityCode)),
+    (re.compile(r'\+\+\b(.+?)\b\+\+'), parse_aesthetics),
+    #(re.compile(r'~~\b(.+?)\b~~'), parse_strikethrough),
+    (re.compile(r'@@\b(.+?)\b@@'), parse_enclosing_circle),
+    (re.compile(r'([^/\w]|^)(/?(r/\w{3,21}\b))'), parse_subreddit),
     (re.compile(r'(!\w+)'), parse_snip)
 ]
 
@@ -153,6 +153,8 @@ def parse(message, old_entities=None):
 @borg.on(events.MessageEdited(outgoing=True))
 @borg.on(events.NewMessage(outgoing=True))
 async def reparse(event):
+    if not event.raw_text:
+        return
     old_entities = event.message.entities or []
     parser = partial(parse, old_entities=old_entities)
     message, msg_entities = await borg._parse_message_text(event.raw_text, parser)

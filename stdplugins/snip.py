@@ -21,7 +21,9 @@ snips = storage.snips or {}
 
 @borg.on(events.NewMessage(pattern=r'(?:\.snip\s+|!)(\S+)$', outgoing=True))
 async def on_snip(event):
-    loop.create_task(event.delete())
+    if event.message.media:
+        return
+
     name = event.pattern_match.group(1)
     if name not in snips:
         return
@@ -34,6 +36,7 @@ async def on_snip(event):
     else:
         media = None
 
+    loop.create_task(event.delete())
     await borg.send_message(await event.get_input_chat(), snip['text'],
                             file=media,
                             reply_to=event.message.reply_to_msg_id)

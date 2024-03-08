@@ -14,7 +14,7 @@ from uniborg import util
 
 
 async def get_target_message(event):
-    if event.is_reply and (await event.get_reply_message()).from_id == borg.uid:
+    if event.is_reply and (await event.get_reply_message()).sender_id == borg.uid:
         return await event.get_reply_message()
     async for message in borg.iter_messages(
             await event.get_input_chat(), limit=20):
@@ -39,8 +39,8 @@ async def await_read(chat, message):
     await fut
 
 
-@borg.on(events.NewMessage(outgoing=True, pattern=r"^\.(del)(?:ete)?$")
-@borg.on(events.NewMessage(outgoing=True, pattern=r"^\.(edit)(?:\s+(.*))?$")
+@borg.on(events.NewMessage(outgoing=True, pattern=r"^\.(del)(?:ete)?$"))
+@borg.on(events.NewMessage(outgoing=True, pattern=r"^\.(edit)(?:\s+(.*))?$"))
 async def delete(event):
     await event.delete()
     command = event.pattern_match.group(1)

@@ -35,7 +35,7 @@ def cleanup_pattern(match):
 
 
 #@util.sync_timeout(1)
-async def doit(message, match):
+async def doit(command, match):
     fr, to = cleanup_pattern(match)
 
     try:
@@ -61,37 +61,50 @@ async def doit(message, match):
         elif f == 'x':
             flags |= re.VERBOSE
         else:
-            await message.reply(f'{HEADER}Unknown flag: {f}')
+            await command.reply(f'{HEADER}Unknown flag: {f}')
             return
 
-    def substitute(m):
-        if s := m.raw_text:
-            if s.startswith(HEADER):
-                s = s[len(HEADER):]
-        else:
+    def substitute(s):
+        if not s:
             return None
+
+        if s.startswith(HEADER):
+            s = s[len(HEADER):]
 
         s, i = re.subn(fr, to, s, count=count, flags=flags)
         if i > 0:
             return s
 
     try:
-        msg = None
-        substitution = None
-        if message.is_reply:
-            msg = await message.get_reply_message()
-            substitution = substitute(msg)
+        if command.is_reply:
+            if command.reply_to.reply_from is not None:
+                # External reply
+                reply_to = command.id
+            else:
+                reply_to = command.reply_to.reply_to_msg_id
+
+            original_text = (
+                command.reply_to.quote_text
+                or (await command.get_reply_message()).raw_text
+            )
+
+            substitution = substitute(original_text)
         else:
-            for msg in reversed(last_msgs[message.chat_id]):
-                substitution = substitute(msg)
+            for msg in reversed(last_msgs[command.chat_id]):
+                reply_to = msg.id
+                substitution = substitute(msg.raw_text)
                 if substitution is not None:
                     break  # msg is also set
 
         if substitution is not None:
-            return await msg.reply(f'{HEADER}{substitution}', parse_mode=None)
+            return await command.respond(
+                f'{HEADER}{substitution}',
+                parse_mode=None,
+                reply_to=reply_to,
+            )
 
     except Exception as e:
-        await message.reply(f'{HEADER}fuck me: {e}')
+        await command.reply(f'{HEADER}fuck me: {e}')
 
 
 async def group_has_sedbot(group):

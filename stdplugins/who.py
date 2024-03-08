@@ -23,29 +23,6 @@ def get_who_string(who, rank=None):
     return who_string
 
 
-@borg.on(events.NewMessage(pattern=r"\.who", outgoing=True))
-async def _(event):
-    rank = None
-    if not event.message.is_reply:
-        who = await event.get_chat()
-    else:
-        msg = await event.message.get_reply_message()
-        if msg.forward:
-          	# FIXME forward privacy memes
-            who = await borg.get_entity(
-                msg.forward.from_id or msg.forward.channel_id)
-        else:
-            who = await msg.get_sender()
-            ic = await event.get_input_chat()
-            if isinstance(ic, types.InputPeerChannel):
-                rank = getattr((await borg(functions.channels.GetParticipantRequest(
-                    ic,
-                    who
-                ))).participant, 'rank', None)
-
-    await event.edit(get_who_string(who, rank), parse_mode='html')
-
-
 @borg.on(events.NewMessage(pattern=r"\.members", outgoing=True))
 async def _(event):
     last = 0
@@ -59,6 +36,9 @@ async def _(event):
         if now - last > 0.5:
             last = now
             await event.edit(f'counting member stats ({index / it.total:.2%})…')
+
+        if member.bot:
+            continue
 
         messages = await borg.get_messages(
             event.chat_id,
@@ -80,6 +60,9 @@ async def _(event):
 async def _(event):
     members = []
     async for member in borg.iter_participants(event.chat_id):
+        if member.bot:
+            continue
+
         messages = await borg.get_messages(
             event.chat_id,
             from_user=member,

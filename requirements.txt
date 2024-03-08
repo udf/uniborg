@@ -1,1 +1,6 @@
 telethon
+regex
+aiohttp
+google-auth
+google-cloud-translate
+google-cloud-texttospeech

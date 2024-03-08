@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from telethon import events
 from telethon.tl.functions.messages import SaveDraftRequest
+from telethon.tl.types import InputReplyToMessage
 
 def intify(d):
     for k, v in d.items():
@@ -37,7 +38,7 @@ async def _(event):
             await borg(SaveDraftRequest(
                 await event.get_input_chat(),
                 "",
-                reply_to_msg_id=message
+                reply_to=InputReplyToMessage(reply_to_msg_id=message)
             ))
 
         message = reply

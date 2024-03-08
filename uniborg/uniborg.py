@@ -13,6 +13,7 @@ import telethon.events
 
 from .storage import Storage
 from . import hacks
+from . import util
 
 
 class Uniborg(TelegramClient):
@@ -42,22 +43,22 @@ class Uniborg(TelegramClient):
 
         self.loop.run_until_complete(self._async_init(bot_token=bot_token))
 
-        core_plugin = Path(__file__).parent / "_core.py"
-        self.load_plugin_from_file(core_plugin)
-
-        for p in Path().glob(f"{self._plugin_path}/*.py"):
-            self.load_plugin_from_file(p)
-
     async def _async_init(self, **kwargs):
         await self.start(**kwargs)
 
         self.me = await self.get_me()
         self.uid = telethon.utils.get_peer_id(self.me)
 
-    def load_plugin(self, shortname):
-        self.load_plugin_from_file(f"{self._plugin_path}/{shortname}.py")
+        core_plugin = Path(__file__).parent / "_core.py"
+        await self.load_plugin_from_file(core_plugin)
 
-    def load_plugin_from_file(self, path):
+        for p in Path().glob(f"{self._plugin_path}/*.py"):
+            await self.load_plugin_from_file(p)
+
+    async def load_plugin(self, shortname):
+        await self.load_plugin_from_file(f"{self._plugin_path}/{shortname}.py")
+
+    async def load_plugin_from_file(self, path):
         path = Path(path)
         shortname = path.stem
         name = f"_UniborgPlugins.{self._name}.{shortname}"
@@ -69,8 +70,20 @@ class Uniborg(TelegramClient):
         mod.logger = logging.getLogger(shortname)
         mod.storage = self.storage(f"{self._name}/{shortname}")
 
-        spec.loader.exec_module(mod)
+        try:
+            spec.loader.exec_module(mod)
+        except util.StopImport:
+            return
         self._plugins[shortname] = mod
+
+        if callable(getattr(mod, 'load', None)):
+            try:
+                unload = mod.unload()
+                if inspect.isawaitable(unload):
+                    await unload
+            except Exception:
+                self._logger.exception(f'Unhandled exception loading {shortname}')
+
         self._logger.info(f"Successfully loaded plugin {shortname}")
 
     async def remove_plugin(self, shortname):
@@ -110,20 +123,21 @@ class Uniborg(TelegramClient):
 
         return fut
 
-    def cmd(self, command, pattern=None, admin_only=False):
+    def cmd(self, command, pattern=None, flags="", admin_only=False):
+        command = fr'(?:{command})'
         if self.me.bot:
             command = fr'{command}(?:@{self.me.username})?'
 
         if pattern is not None:
-            pattern = fr'{command}\s+{pattern}'
+            pattern = fr'{command}{pattern}'
         else:
             pattern = command
 
         if not self.me.bot:
-            pattern=fr'^\.{pattern}'
+            pattern = fr'^\.{pattern}'
         else:
-            pattern=fr'^\/{pattern}'
-        pattern=fr'(?i){pattern}$'
+            pattern = fr'^\/{pattern}'
+        pattern = fr'(?i{flags}){pattern}$'
 
         if self.me.bot and admin_only:
             allowed_users = self.admins
@@ -136,5 +150,5 @@ class Uniborg(TelegramClient):
             pattern=pattern
         )
 
-    def admin_cmd(self, command, pattern=None):
+    def admin_cmd(self, command, pattern=None, flags=""):
         return self.cmd(command, pattern, admin_only=True)

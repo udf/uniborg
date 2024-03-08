@@ -8,7 +8,7 @@ import traceback
 DELETE_TIMEOUT = 2
 
 
-@borg.on(borg.admin_cmd(r"(?:re)?load", r"(?P<shortname>\w+)"))
+@borg.on(borg.admin_cmd(r"(?:re)?load", r"\s+(?P<shortname>\w+)"))
 async def load_reload(event):
     if not borg.me.bot:
         await event.delete()
@@ -17,7 +17,7 @@ async def load_reload(event):
     try:
         if shortname in borg._plugins:
             await borg.remove_plugin(shortname)
-        borg.load_plugin(shortname)
+        await borg.load_plugin(shortname)
 
         msg = await event.respond(
             f"Successfully (re)loaded plugin {shortname}")
@@ -31,7 +31,7 @@ async def load_reload(event):
         await event.respond(f"Failed to (re)load plugin {shortname}: {e}")
 
 
-@borg.on(borg.admin_cmd(r"(?:unload|disable|remove)", r"(?P<shortname>\w+)"))
+@borg.on(borg.admin_cmd(r"(?:unload|disable|remove)", r"\s+(?P<shortname>\w+)"))
 async def remove(event):
     if not borg.me.bot:
         await event.delete()

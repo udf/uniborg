@@ -11,7 +11,7 @@ from telethon import events, types, functions, utils
 
 def choser(cmd, pack, blacklist={}):
     docs = None
-    @borg.on(events.NewMessage(pattern=rf'\.{cmd}', outgoing=True))
+    @borg.on(events.NewMessage(pattern=rf'^\.{cmd}$', outgoing=True))
     async def handler(event):
         await event.delete()
 
@@ -19,7 +19,8 @@ def choser(cmd, pack, blacklist={}):
         if docs is None:
             docs = [
                 utils.get_input_document(x)
-                for x in (await borg(functions.messages.GetStickerSetRequest(types.InputStickerSetShortName(pack)))).documents
+                for x in (await
+                    borg(functions.messages.GetStickerSetRequest(types.InputStickerSetShortName(pack), hash=0))).documents
                 if x.id not in blacklist
             ]
 

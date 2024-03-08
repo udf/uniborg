@@ -13,6 +13,12 @@ cd uniborg
 python stdborg.py
 ```
 
+The tl plugin needs a [Google Cloud API](https://cloud.google.com/apis) key, in
+order to access Google Translate and Text-to-Speech APIs.  
+Save the key as `google_cloud_key.json` in your bot's working directory (most
+likely the root of this repo).  
+The plugin will be non-functional without a key.
+
 ## design
 
 The modular design of the project enhances your Telegram experience
