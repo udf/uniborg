@@ -12,7 +12,6 @@ document_order = [
   emoji_documents['pink'],
   emoji_documents['white'],
   emoji_documents['pink'],
-  emoji_documents['blue'],
 ]
 
 
@@ -25,7 +24,7 @@ async def main():
           emoji_status=types.EmojiStatus(document_id=document_id)
         ))
       previous_doc = document_id
-      await asyncio.sleep(24)
+      await asyncio.sleep(30)
 
 
 def unload():
