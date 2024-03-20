@@ -14,7 +14,8 @@ borg = Uniborg(
     plugin_path="stdplugins",
     connection_retries=None,
     api_id=api_key.id,
-    api_hash=api_key.hash
+    api_hash=api_key.hash,
+    flood_sleep_threshold=float('inf')
 )
 
 borg.run_until_disconnected()
