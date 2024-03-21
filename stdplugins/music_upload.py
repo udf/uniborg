@@ -52,7 +52,8 @@ def iter_uploadable_dirs():
 
 
 async def upload_dir(path, metadata):
-  logger.info(f'Uploading {str(path)!r} ({len(metadata["files"])} files)...')
+  num_files = len(metadata["files"])
+  logger.info(f'Uploading {str(path)!r} ({num_files} files)...')
   entity = await borg.get_entity(metadata.get('dest', '@musicwastaken'))
 
   attributes = [utils.get_attributes(str(path / filename))[0] for filename in metadata['files']]
@@ -79,18 +80,22 @@ async def upload_dir(path, metadata):
       await borg.pin_message(entity, message)
 
   shutil.rmtree(path)
+  return num_files
 
 
 async def main():
   while 1:
+    num_uploaded = 0
     for path, metadata in iter_uploadable_dirs():
       try:
-        await upload_dir(path, metadata)
+        num_uploaded += await upload_dir(path, metadata)
       except Exception as e:
         # <1> sets the systemd log level, will get sent to tg via watcher bot
         print(f'<1>Unhandled exception uploading {str(path)!r}')
         logger.exception('Unhandled exception in upload loop')
-      await asyncio.sleep(60 * 30)
+      if num_uploaded >= 10:
+        num_uploaded = 0
+        await asyncio.sleep(60 * 30)
 
     await asyncio.sleep(60)
 
