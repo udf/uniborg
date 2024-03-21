@@ -85,17 +85,15 @@ async def upload_dir(path, metadata):
 
 async def main():
   while 1:
-    num_uploaded = 0
     for path, metadata in iter_uploadable_dirs():
       try:
-        num_uploaded += await upload_dir(path, metadata)
+        num_uploaded = await upload_dir(path, metadata)
+        await asyncio.sleep(300 * num_uploaded)
       except Exception as e:
         # <1> sets the systemd log level, will get sent to tg via watcher bot
         print(f'<1>Unhandled exception uploading {str(path)!r}')
         logger.exception('Unhandled exception in upload loop')
-      if num_uploaded >= 10:
-        num_uploaded = 0
-        await asyncio.sleep(60 * 30)
+        await asyncio.sleep(300)
 
     await asyncio.sleep(60)
 
