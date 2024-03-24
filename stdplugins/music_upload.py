@@ -37,7 +37,7 @@ def get_music_thumb(f):
   return data
 
 
-def iter_uploadable_dirs():
+def next_uploadable_dir():
   src_dir = Path('/sync/music_tg')
   for metafile in sorted(src_dir.glob('*/meta.json')):
     with open(metafile) as f:
@@ -49,6 +49,8 @@ def iter_uploadable_dirs():
     parent = metafile.parent
     if all((parent / path).exists() for path in metadata['files']):
       yield parent, metadata
+      break
+
 
 
 async def upload_dir(path, metadata):
@@ -85,17 +87,18 @@ async def upload_dir(path, metadata):
 
 async def main():
   while 1:
-    for path, metadata in iter_uploadable_dirs():
+    for path, metadata in next_uploadable_dir():
       try:
         num_uploaded = await upload_dir(path, metadata)
-        await asyncio.sleep(300 * num_uploaded)
+        await asyncio.sleep(180 * num_uploaded)
+        break
       except Exception as e:
         # <1> sets the systemd log level, will get sent to tg via watcher bot
         print(f'<1>Unhandled exception uploading {str(path)!r}')
         logger.exception('Unhandled exception in upload loop')
         await asyncio.sleep(300)
-
-    await asyncio.sleep(60)
+    else:
+      await asyncio.sleep(60)
 
 
 def unload():
