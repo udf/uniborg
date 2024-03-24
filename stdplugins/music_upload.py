@@ -52,13 +52,36 @@ def next_uploadable_dir():
       break
 
 
+def get_music_attributes(path):
+  concat = lambda l: ', '.join(l) or None
+  attrs = [DocumentAttributeFilename(path.name)]
+  m = mutagen.File(path)
+
+  title = None
+  performer = None
+  if isinstance(m, mutagen.flac.FLAC):
+    title = concat(m.tags.get('TITLE', []))
+    performer = concat(m.tags.get('ARTIST', []))
+  elif isinstance(m, mutagen.mp3.MP3):
+    title = concat(m.tags.get('TIT2', []))
+    performer = concat(m.tags.get('TPE1', []))
+
+  attrs.append(DocumentAttributeAudio(
+    duration=int(m.info.length) if m.info.length else 0,
+    title=title,
+    performer=performer,
+    voice=False
+  ))
+
+  return attrs
+
 
 async def upload_dir(path, metadata):
   num_files = len(metadata["files"])
   logger.info(f'Uploading {str(path)!r} ({num_files} files)...')
   entity = await borg.get_entity(metadata.get('dest', '@musicwastaken'))
 
-  attributes = [utils.get_attributes(str(path / filename))[0] for filename in metadata['files']]
+  attributes = [get_music_attributes(path / filename) for filename in metadata['files']]
   thumbs = [get_music_thumb(path / filename) for filename in metadata['files']]
 
   uploaded_files = []
